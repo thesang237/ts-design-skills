@@ -1,0 +1,50 @@
+/* ---- Page transitions (native View Transitions) ----------------------------
+   React's <ViewTransition> assigns the class names used here (see lib/transition-types.ts).
+   Everything animates transform / opacity only. Timing comes from --pt-* variables. */
+
+/* Let clicks reach the live page while a transition plays. */
+::view-transition { pointer-events: none; }
+
+/* The header is named in globals.css. Keep it perfectly still. */
+::view-transition-group(site-header) { animation: none; z-index: 10; }
+::view-transition-old(site-header) { display: none; }
+::view-transition-new(site-header) { animation: none; }
+
+/* Fade + rise: old page leaves quickly, new page arrives a little later and more gently. */
+::view-transition-old(.pt-fade) { animation: pt-out calc(var(--pt-dur) * 0.4) var(--pt-ease-in) both; }
+::view-transition-new(.pt-fade) {
+  animation:
+    pt-in var(--pt-dur) var(--pt-ease) calc(var(--pt-dur) * 0.25) both,
+    pt-rise var(--pt-dur) var(--pt-ease) calc(var(--pt-dur) * 0.25) both;
+}
+
+/* Directional slide: forward moves left, back moves right. */
+::view-transition-old(.pt-slide-forward) { --offset: calc(var(--pt-distance) * -1); animation: pt-out calc(var(--pt-dur) * 0.45) var(--pt-ease-in) both, pt-slide calc(var(--pt-dur) * 0.8) var(--pt-ease-in) both reverse; }
+::view-transition-new(.pt-slide-forward) { --offset: var(--pt-distance); animation: pt-in calc(var(--pt-dur) * 0.7) var(--pt-ease) calc(var(--pt-dur) * 0.3) both, pt-slide var(--pt-dur) var(--pt-ease) calc(var(--pt-dur) * 0.2) both; }
+::view-transition-old(.pt-slide-back) { --offset: var(--pt-distance); animation: pt-out calc(var(--pt-dur) * 0.45) var(--pt-ease-in) both, pt-slide calc(var(--pt-dur) * 0.8) var(--pt-ease-in) both reverse; }
+::view-transition-new(.pt-slide-back) { --offset: calc(var(--pt-distance) * -1); animation: pt-in calc(var(--pt-dur) * 0.7) var(--pt-ease) calc(var(--pt-dur) * 0.3) both, pt-slide var(--pt-dur) var(--pt-ease) calc(var(--pt-dur) * 0.2) both; }
+
+/* Shared element (work card <-> detail hero): the browser moves it between positions. */
+::view-transition-group(.morph) { animation-duration: calc(var(--pt-dur) * 1.2); animation-timing-function: var(--pt-ease-inout); z-index: 5; }
+::view-transition-old(.morph), ::view-transition-new(.morph) { height: 100%; object-fit: cover; }
+
+/* Suspense reveal: skeleton leaves fast, real content arrives softly. */
+::view-transition-old(.pt-reveal-out) { animation: pt-out 150ms var(--pt-ease-in) both; }
+::view-transition-new(.pt-reveal-in) { animation: pt-in calc(var(--pt-dur) * 0.6) var(--pt-ease) both, pt-rise calc(var(--pt-dur) * 0.6) var(--pt-ease) both; }
+
+@keyframes pt-out { to { opacity: 0; } }
+@keyframes pt-in { from { opacity: 0; } }
+@keyframes pt-rise { from { translate: 0 var(--pt-rise); } }
+@keyframes pt-slide { from { translate: var(--offset) 0; } }
+
+/* Reduced motion: keep a short fade (it still tells people something changed),
+   remove every kind of movement, and make shared elements snap. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(.pt-fade), ::view-transition-old(.pt-slide-forward), ::view-transition-old(.pt-slide-back), ::view-transition-old(.pt-reveal-out) {
+    animation: pt-out 100ms linear both;
+  }
+  ::view-transition-new(.pt-fade), ::view-transition-new(.pt-slide-forward), ::view-transition-new(.pt-slide-back), ::view-transition-new(.pt-reveal-in) {
+    animation: pt-in 160ms linear 60ms both;
+  }
+  ::view-transition-group(.morph) { animation-duration: 0.01ms; }
+}

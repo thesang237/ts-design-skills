@@ -1,0 +1,37 @@
+/* ---- First-load gate -------------------------------------------------------
+   States on <html data-boot>: pending -> (slow) -> leaving -> removed.
+   Only transform and opacity are animated. */
+
+#boot-loader {
+  display: none;
+  position: fixed; inset: 0; z-index: 100;
+  place-items: center; align-content: center; gap: 1.2rem;
+  background: var(--bg);
+}
+html[data-loader='on'] #boot-loader { display: grid; }
+
+.boot-mark { font-weight: 650; letter-spacing: .3em; text-transform: uppercase; font-size: .8rem; }
+.boot-bar { width: 9rem; height: 2px; background: var(--line); overflow: hidden; }
+.boot-bar i {
+  display: block; height: 100%; background: var(--ink);
+  transform-origin: left; transform: scaleX(var(--boot-progress, 0.08));
+  transition: transform 300ms var(--pt-ease);
+}
+
+/* Hidden until the boot script decides. This is the ONLY thing keeping the page
+   from flashing unstyled or half-loaded content. */
+html[data-boot='pending'] #app,
+html[data-boot='slow'] #app { visibility: hidden; }
+
+html[data-boot='leaving'] #app { animation: boot-page-in 600ms var(--pt-ease) both; }
+html[data-boot='leaving'] #boot-loader { animation: boot-loader-out 500ms var(--pt-ease-inout) both; pointer-events: none; }
+
+@keyframes boot-page-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes boot-loader-out { to { opacity: 0; transform: translateY(-3%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .boot-bar i { transition: none; }
+  html[data-boot='leaving'] #app { animation-duration: 150ms; }
+  html[data-boot='leaving'] #boot-loader { animation-duration: 150ms; animation-name: boot-loader-fade; }
+  @keyframes boot-loader-fade { to { opacity: 0; } }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "quality-check",
+  "version": "0.1.0",
+  "description": "Review a design or build for consistency, accessibility and polish.",
+  "author": {
+    "name": "Sang"
+  }
+}

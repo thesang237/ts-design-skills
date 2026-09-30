@@ -1,7 +1,7 @@
 {
   "name": "web-motion",
-  "version": "0.1.0",
-  "description": "Animation and motion design for the web: transitions, easing, micro-interactions.",
+  "version": "0.2.0",
+  "description": "Motion taste and technique for the web: named easing, duration and stagger presets shared by CSS, GSAP and Motion; scroll reveals and scroll-mapped scenes; hover and press micro-interactions; text reveals; reduced motion and performance rules.",
   "author": {
     "name": "Sang"
   }

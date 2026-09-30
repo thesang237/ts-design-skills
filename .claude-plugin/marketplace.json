@@ -1,5 +1,5 @@
 {
-  "name": "my-design-skills",
+  "name": "ts-design-skills",
   "owner": {
     "name": "Sang"
   },
@@ -15,12 +15,17 @@
     {
       "name": "web-motion",
       "source": "./plugins/web-motion",
-      "description": "Animation and motion design for the web: transitions, easing, micro-interactions."
+      "description": "Motion taste and technique for the web: named easing, duration and stagger presets shared by CSS, GSAP and Motion; scroll reveals, scroll-mapped scenes and progress mapping; hover and press micro-interactions; text reveals; an immersive-site mode and opt-in effects (one-film scroll, magnetic buttons, scroll-speed reactions, decode HUD); reduced motion and performance rules."
     },
     {
       "name": "3d-web",
       "source": "./plugins/3d-web",
-      "description": "3D on the web: scenes, lighting, materials and performance."
+      "description": "3D on the web with three.js / React Three Fiber in Next.js: setup, camera and lighting presets, materials and shaders, glTF compression, scroll- and pointer-driven 3D, blending 3D with page UI, device quality tiers, poster fallbacks, WebGPU upgrade path and GPU memory cleanup."
+    },
+    {
+      "name": "page-transitions",
+      "source": "./plugins/page-transitions",
+      "description": "Page loaders and page transitions for React / Next.js: native View Transitions, GSAP and Motion, with accessibility, scroll and performance rules."
     },
     {
       "name": "quality-check",

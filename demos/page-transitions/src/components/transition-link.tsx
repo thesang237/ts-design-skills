@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useCurtain } from './curtain'
 import { getDirection } from '@/lib/direction'
+import { entrance } from '@/lib/entrance'
 import type { TransitionStyle, TransitionType } from '@/lib/transition-types'
 
 function pickType(style: TransitionStyle, direction: 'forward' | 'back', reduceMotion: boolean): TransitionType {
@@ -36,6 +37,7 @@ export function TransitionLink({ href, onNavigate, ...props }: ComponentProps<ty
         if (!target.startsWith('/') || target.split(/[?#]/)[0] === pathname) return // let Next handle it
 
         event.preventDefault()
+        entrance.armed = false // first-load entrances are over; the transition owns this moment
         const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
         const style = (document.documentElement.dataset.ptStyle as TransitionStyle | undefined) ?? 'fade'
         const type = pickType(style, getDirection(pathname, target), reduce)

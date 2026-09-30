@@ -1,15 +1,11 @@
 'use client'
 
 import { useEffect } from 'react'
-import { SEEN_KEY } from '@/lib/boot-script'
+import { MIN_VISIBLE_MS, SEEN_KEY } from '@/lib/boot-script'
+import { entrance } from '@/lib/entrance'
 
 /** Never wait longer than this for assets. A slow image must not trap the visitor. */
 const MAX_WAIT_MS = 4000
-/**
- * Only applies when the loader is already visible: keeps it from flashing for a
- * few frames. 0 = off (no artificial time at all). Ask the designer before raising it.
- */
-const MIN_VISIBLE_MS = 0
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 
@@ -31,48 +27,63 @@ function collectReadiness() {
     tasks.push(whenImageReady(img))
   })
   try {
-    // Demo-only switch to make the loader visible on a fast connection.
+    // Demo-only switch to make the loader wait longer than its intro.
     if (localStorage.getItem('pt:demo-slow') === '1') tasks.push(sleep(2500))
   } catch {}
   return tasks
+}
+
+/** Resolve when the named CSS animation ends on `el`, or after `fallbackMs`. */
+function animationEnd(el: Element | null, name: string, fallbackMs: number) {
+  return new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, fallbackMs)
+    el?.addEventListener('animationend', function onEnd(e) {
+      if ((e as AnimationEvent).animationName !== name || e.target !== el) return
+      el.removeEventListener('animationend', onEnd)
+      clearTimeout(timer)
+      resolve()
+    })
+  })
 }
 
 async function boot() {
   const root = document.documentElement
   if (!root.dataset.boot) return
 
-  const tasks = collectReadiness()
-  let done = 0
-  const setProgress = (n: number) => root.style.setProperty('--boot-progress', String(n / tasks.length))
-  setProgress(0)
-  tasks.forEach((t) => t.finally(() => setProgress(++done)))
+  // Ready = real needs met AND the loader has been visible for its full length.
+  const ready = Promise.race([Promise.all(collectReadiness()), sleep(MAX_WAIT_MS)])
+  const shownAt = (window as unknown as { __bootShownAt?: number }).__bootShownAt
+  const minimum = shownAt === undefined ? 0 : Math.max(0, MIN_VISIBLE_MS - (performance.now() - shownAt))
+  await Promise.all([ready, sleep(minimum)])
 
-  await Promise.race([Promise.all(tasks), sleep(MAX_WAIT_MS)])
-
-  const shownAt = (window as unknown as { __bootSlowAt?: number }).__bootSlowAt
-  if (root.dataset.loader && shownAt !== undefined) {
-    await sleep(Math.max(0, MIN_VISIBLE_MS - (performance.now() - shownAt)))
-  }
-
-  root.dataset.boot = 'leaving'
-  const finish = () => {
-    delete root.dataset.boot
-    delete root.dataset.loader
-    try {
-      sessionStorage.setItem(SEEN_KEY, '1')
-    } catch {}
-  }
   const app = document.getElementById('app')
-  const onEnd = (e: AnimationEvent) => {
-    if (e.target === app && e.animationName === 'boot-page-in') finish()
+  const loader = document.getElementById('boot-loader')
+
+  // 1. Loader leaves completely (only if it was ever shown)...
+  if (root.dataset.loader) {
+    root.dataset.boot = 'leaving'
+    await animationEnd(loader, 'boot-loader-out', 1500)
   }
-  app?.addEventListener('animationend', onEnd)
-  setTimeout(finish, 1200) // safety net: never leave the page hidden
+  // 2. ...then the page comes in.
+  root.dataset.boot = 'entering'
+  delete root.dataset.loader
+  await animationEnd(app, 'boot-page-in', 1500)
+
+  delete root.dataset.boot // page is ready: entrances may start now
+  try {
+    sessionStorage.setItem(SEEN_KEY, '1')
+  } catch {}
 }
 
 export function BootController() {
   useEffect(() => {
+    // Entrances are for the first load only. Any later navigation turns them off.
+    const disarm = () => {
+      entrance.armed = false
+    }
+    window.addEventListener('popstate', disarm)
     void boot()
+    return () => window.removeEventListener('popstate', disarm)
   }, [])
   return null
 }

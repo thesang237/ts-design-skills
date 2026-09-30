@@ -1,5 +1,6 @@
-/* ---- First-load gate -------------------------------------------------------
-   States on <html data-boot>: pending -> (slow) -> leaving -> removed.
+/* ---- First-load intro ------------------------------------------------------
+   States on <html data-boot>: intro -> leaving -> entering -> removed.
+   One thing at a time: the page is hidden until the loader has fully left.
    Only transform and opacity are animated. */
 
 #boot-loader {
@@ -12,26 +13,31 @@ html[data-loader='on'] #boot-loader { display: grid; }
 
 .boot-mark { font-weight: 650; letter-spacing: .3em; text-transform: uppercase; font-size: .8rem; }
 .boot-bar { width: 9rem; height: 2px; background: var(--line); overflow: hidden; }
-.boot-bar i {
-  display: block; height: 100%; background: var(--ink);
-  transform-origin: left; transform: scaleX(var(--boot-progress, 0.08));
-  transition: transform 300ms var(--pt-ease);
-}
+.boot-bar i { display: block; height: 100%; background: var(--ink); transform-origin: left; transform: scaleX(0); }
 
-/* Hidden until the boot script decides. This is the ONLY thing keeping the page
-   from flashing unstyled or half-loaded content. */
+/* The intro is a fixed-length animation: it lasts --boot-min (set by the inline script). */
+html[data-boot='intro'] .boot-mark { animation: boot-mark-in calc(var(--boot-min, 1400ms) * 0.4) var(--pt-ease) both; }
+html[data-boot='intro'] .boot-bar i { animation: boot-fill var(--boot-min, 1400ms) cubic-bezier(0.4, 0, 0.2, 1) both; }
+/* If real loading takes longer than the intro, the bar waits near the end instead of lying. */
+@keyframes boot-fill { to { transform: scaleX(0.92); } }
+@keyframes boot-mark-in { from { opacity: 0; translate: 0 8px; } }
+
+/* The page stays hidden until the loader has completely left. */
 html[data-boot='pending'] #app,
-html[data-boot='slow'] #app { visibility: hidden; }
+html[data-boot='intro'] #app,
+html[data-boot='leaving'] #app { visibility: hidden; }
 
-html[data-boot='leaving'] #app { animation: boot-page-in 600ms var(--pt-ease) both; }
-html[data-boot='leaving'] #boot-loader { animation: boot-loader-out 500ms var(--pt-ease-inout) both; pointer-events: none; }
+html[data-boot='leaving'] #boot-loader { animation: boot-loader-out calc(var(--pt-dur) * 0.4) var(--pt-ease-inout) both; pointer-events: none; }
+html[data-boot='leaving'] .boot-bar i { transform: scaleX(1); }
+html[data-boot='entering'] #app { animation: boot-page-in calc(var(--pt-dur) * 0.4) var(--pt-ease) both; }
 
+@keyframes boot-loader-out { to { opacity: 0; translate: 0 -3%; } }
 @keyframes boot-page-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes boot-loader-out { to { opacity: 0; transform: translateY(-3%); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .boot-bar i { transition: none; }
-  html[data-boot='leaving'] #app { animation-duration: 150ms; }
+  html[data-boot='intro'] .boot-mark, html[data-boot='intro'] .boot-bar i { animation-name: none; }
+  html[data-boot='intro'] .boot-bar i { transform: scaleX(0.5); }
   html[data-boot='leaving'] #boot-loader { animation-duration: 150ms; animation-name: boot-loader-fade; }
+  html[data-boot='entering'] #app { animation-duration: 150ms; }
   @keyframes boot-loader-fade { to { opacity: 0; } }
 }

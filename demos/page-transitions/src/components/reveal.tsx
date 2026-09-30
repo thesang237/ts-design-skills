@@ -2,8 +2,9 @@
 
 import { motion, useReducedMotion } from 'motion/react'
 import { useEffect, useState, type ReactNode } from 'react'
+import { entrance } from '@/lib/entrance'
 
-/** True once the first-load loader has left (or was never shown). */
+/** True once the first-load intro has completely finished (or was never shown). */
 function useBootDone() {
   const [done, setDone] = useState(false)
   useEffect(() => {
@@ -20,8 +21,10 @@ function useBootDone() {
 }
 
 /**
- * Motion for in-page choreography: content rises in, staggered, once the page
- * (and the loader, if it showed) is out of the way. Transform + opacity only.
+ * Motion for in-page choreography on the FIRST load: content rises in, staggered, only after
+ * the intro (if any) has completely left. It never runs during page navigation: the page
+ * transition owns that moment, and next-page content must not start early.
+ * Transform + opacity only.
  */
 export function Reveal({
   children,
@@ -37,13 +40,14 @@ export function Reveal({
   const reduce = useReducedMotion()
   const bootDone = useBootDone()
   const Tag = motion[as]
+  const skip = reduce || !entrance.armed
   return (
     <Tag
       className={className}
       data-reveal
-      initial={reduce ? false : { opacity: 0, y: 18 }}
-      animate={reduce || bootDone ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }}
-      transition={{ duration: 0.7, delay: 0.12 + order * 0.07, ease: [0.16, 1, 0.3, 1] }}
+      initial={skip ? false : { opacity: 0, y: 18 }}
+      animate={skip || bootDone ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }}
+      transition={{ duration: 0.7, delay: 0.05 + order * 0.07, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}
     </Tag>

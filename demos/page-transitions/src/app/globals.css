@@ -10,7 +10,7 @@
   --accent: #e76f51;
 
   /* Timing lives in CSS variables so the demo panel (and you) can tune it in one place. */
-  --pt-dur: 500ms;
+  --pt-dur: 800ms;
   --pt-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --pt-ease-in: cubic-bezier(0.4, 0, 1, 1);
   --pt-ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
@@ -80,12 +80,13 @@ a { color: inherit; text-decoration: none; }
 .bone-s { width: 7rem; } .bone-l { width: min(24rem, 60%); }
 @keyframes pt-shimmer { to { background-position: -200% 0; } }
 
-/* The GSAP curtain. Off-screen until it runs; it only ever moves with transform. */
+/* The GSAP curtain. Hidden until it runs; it only ever moves with transform.
+   GSAP alone owns its transform (no CSS transform here, or the two offsets add up). */
 .curtain {
   position: fixed; inset: 0; z-index: 200; background: var(--ink);
-  transform: translateY(100%); pointer-events: none; will-change: transform;
+  visibility: hidden; pointer-events: none; will-change: transform;
 }
-.curtain[data-active='true'] { pointer-events: auto; }
+.curtain[data-active='true'] { visibility: visible; pointer-events: auto; }
 
 /* Demo controls (not part of the skill) */
 .demo-panel { position: fixed; left: 1rem; bottom: 1rem; z-index: 250; font-size: .85rem; max-width: 20rem; }

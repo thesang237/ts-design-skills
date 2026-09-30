@@ -7,7 +7,8 @@ A personal collection of design skills for [Claude Code](https://claude.com/clau
 | Skill | What it's for |
 | --- | --- |
 | **ui-craft** | Interface design craft: layout, spacing, typography, color, polish |
-| **web-motion** | Animation and motion on the web: transitions, easing, micro-interactions |
+| **web-motion** | Motion presets (easing, durations, stagger) shared by CSS, GSAP and Motion; scroll reveals and scroll scenes; hover and press; text reveals; reduced motion and performance. Has a runnable demo in `demos/web-motion` |
+| **page-transitions** | First-load intro/loader and page transitions for React / Next.js (native View Transitions, GSAP, Motion). Has a runnable demo in `demos/page-transitions` |
 | **3d-web** | 3D on the web: scenes, lighting, materials, performance |
 | **quality-check** | Reviewing work for consistency, accessibility and polish |
 
@@ -20,7 +21,7 @@ Three words matter here:
 - **Marketplace**: this whole folder. It's a catalog that lists the plugins and says where to find them.
 
 ```
-my-design-skills/
+ts-design-skills/
 ├── README.md                      ← this file
 ├── .claude-plugin/
 │   └── marketplace.json           ← the catalog: lists the 4 plugins
@@ -61,7 +62,7 @@ Your instructions, written in plain language.
 Claude Code installs marketplaces from GitHub (or any git host).
 
 1. Create a free account at [github.com](https://github.com) if you don't have one.
-2. Click **New repository**. Name it `my-design-skills`. Choose **Private** if you want only yourself (and people you invite) to use it, or **Public** for anyone.
+2. Click **New repository**. Name it `ts-design-skills`. Choose **Private** if you want only yourself (and people you invite) to use it, or **Public** for anyone.
 3. Upload this folder's contents. The easiest way without the command line is [GitHub Desktop](https://desktop.github.com): choose *File → Add local repository*, pick this folder, follow the prompt to create the repository, then click **Publish repository**.
 
 Make sure the hidden `.claude-plugin` folder is included. On a Mac, press `Cmd + Shift + .` in Finder to show hidden files.
@@ -71,16 +72,16 @@ Make sure the hidden `.claude-plugin` folder is included. On a Mac, press `Cmd +
 In Claude Code, run these two commands. Replace `thesang237` with your GitHub username:
 
 ```
-/plugin marketplace add thesang237/my-design-skills
+/plugin marketplace add thesang237/ts-design-skills
 ```
 
 Then install whichever skills you want:
 
 ```
-/plugin install ui-craft@my-design-skills
-/plugin install web-motion@my-design-skills
-/plugin install 3d-web@my-design-skills
-/plugin install quality-check@my-design-skills
+/plugin install ui-craft@ts-design-skills
+/plugin install web-motion@ts-design-skills
+/plugin install 3d-web@ts-design-skills
+/plugin install quality-check@ts-design-skills
 ```
 
 (For a private repository, you need to be signed in to GitHub on your computer.)
@@ -90,14 +91,14 @@ Then install whichever skills you want:
 You can try it straight from this folder without GitHub. In Claude Code:
 
 ```
-/plugin marketplace add /Users/sang/Documents/dev/my-design-skills
+/plugin marketplace add /Users/sang/Documents/dev/ts-design-skills
 ```
 
 Then use the same `/plugin install ...` commands as above.
 
 ### 5. After you change a skill
 
-Save your edits, publish them to GitHub again (in GitHub Desktop: *Commit*, then *Push origin*). Then in Claude Code run `/plugin marketplace update my-design-skills`. If people don't seem to get your changes, bump the `"version"` number in that plugin's `plugin.json` file (for example `0.1.0` to `0.2.0`).
+Save your edits, publish them to GitHub again (in GitHub Desktop: *Commit*, then *Push origin*). Then in Claude Code run `/plugin marketplace update ts-design-skills`. If people don't seem to get your changes, bump the `"version"` number in that plugin's `plugin.json` file (for example `0.1.0` to `0.2.0`).
 
 ## Adding a new skill later
 

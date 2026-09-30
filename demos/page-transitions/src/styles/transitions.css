@@ -1,6 +1,11 @@
 /* ---- Page transitions (native View Transitions) ----------------------------
    React's <ViewTransition> assigns the class names used here (see lib/transition-types.ts).
-   Everything animates transform / opacity only. Timing comes from --pt-* variables. */
+   Everything animates transform / opacity only.
+
+   --pt-dur is the TOTAL time of one page change. It is split so that the old page has
+   completely gone before the new page starts to appear: no overlap, ever.
+     old page leaves : 0    -> 0.35 x dur
+     new page arrives: 0.35 -> 1.00 x dur */
 
 /* Let clicks reach the live page while a transition plays. */
 ::view-transition { pointer-events: none; }
@@ -10,41 +15,52 @@
 ::view-transition-old(site-header) { display: none; }
 ::view-transition-new(site-header) { animation: none; }
 
-/* Fade + rise: old page leaves quickly, new page arrives a little later and more gently. */
-::view-transition-old(.pt-fade) { animation: pt-out calc(var(--pt-dur) * 0.4) var(--pt-ease-in) both; }
+/* Fade + rise: the old page fades out, THEN the new page fades in and rises a little. */
+::view-transition-old(.pt-fade) { animation: pt-out calc(var(--pt-dur) * 0.35) var(--pt-ease-in) both; }
 ::view-transition-new(.pt-fade) {
   animation:
-    pt-in var(--pt-dur) var(--pt-ease) calc(var(--pt-dur) * 0.25) both,
-    pt-rise var(--pt-dur) var(--pt-ease) calc(var(--pt-dur) * 0.25) both;
+    pt-in calc(var(--pt-dur) * 0.65) var(--pt-ease) calc(var(--pt-dur) * 0.35) both,
+    pt-rise calc(var(--pt-dur) * 0.65) var(--pt-ease) calc(var(--pt-dur) * 0.35) both;
 }
 
-/* Directional slide: forward moves left, back moves right. */
-::view-transition-old(.pt-slide-forward) { --offset: calc(var(--pt-distance) * -1); animation: pt-out calc(var(--pt-dur) * 0.45) var(--pt-ease-in) both, pt-slide calc(var(--pt-dur) * 0.8) var(--pt-ease-in) both reverse; }
-::view-transition-new(.pt-slide-forward) { --offset: var(--pt-distance); animation: pt-in calc(var(--pt-dur) * 0.7) var(--pt-ease) calc(var(--pt-dur) * 0.3) both, pt-slide var(--pt-dur) var(--pt-ease) calc(var(--pt-dur) * 0.2) both; }
-::view-transition-old(.pt-slide-back) { --offset: var(--pt-distance); animation: pt-out calc(var(--pt-dur) * 0.45) var(--pt-ease-in) both, pt-slide calc(var(--pt-dur) * 0.8) var(--pt-ease-in) both reverse; }
-::view-transition-new(.pt-slide-back) { --offset: calc(var(--pt-distance) * -1); animation: pt-in calc(var(--pt-dur) * 0.7) var(--pt-ease) calc(var(--pt-dur) * 0.3) both, pt-slide var(--pt-dur) var(--pt-ease) calc(var(--pt-dur) * 0.2) both; }
+/* Directional slide: forward moves left, back moves right. Same sequence as the fade. */
+::view-transition-old(.pt-slide-forward) { --offset: calc(var(--pt-distance) * -1); animation: pt-out calc(var(--pt-dur) * 0.35) var(--pt-ease-in) both, pt-slide calc(var(--pt-dur) * 0.35) var(--pt-ease-in) both reverse; }
+::view-transition-new(.pt-slide-forward) { --offset: var(--pt-distance); animation: pt-in calc(var(--pt-dur) * 0.65) var(--pt-ease) calc(var(--pt-dur) * 0.35) both, pt-slide calc(var(--pt-dur) * 0.65) var(--pt-ease) calc(var(--pt-dur) * 0.35) both; }
+::view-transition-old(.pt-slide-back) { --offset: var(--pt-distance); animation: pt-out calc(var(--pt-dur) * 0.35) var(--pt-ease-in) both, pt-slide calc(var(--pt-dur) * 0.35) var(--pt-ease-in) both reverse; }
+::view-transition-new(.pt-slide-back) { --offset: calc(var(--pt-distance) * -1); animation: pt-in calc(var(--pt-dur) * 0.65) var(--pt-ease) calc(var(--pt-dur) * 0.35) both, pt-slide calc(var(--pt-dur) * 0.65) var(--pt-ease) calc(var(--pt-dur) * 0.35) both; }
 
-/* Shared element (work card <-> detail hero): the browser moves it between positions. */
-::view-transition-group(.morph) { animation-duration: calc(var(--pt-dur) * 1.2); animation-timing-function: var(--pt-ease-inout); z-index: 5; }
+/* Shared element (work card <-> detail hero): the browser moves it between positions
+   over the whole duration. It is not part of either page's snapshot. */
+::view-transition-group(.morph) { animation-duration: var(--pt-dur); animation-timing-function: var(--pt-ease-inout); z-index: 5; }
 ::view-transition-old(.morph), ::view-transition-new(.morph) { height: 100%; object-fit: cover; }
 
-/* Suspense reveal: skeleton leaves fast, real content arrives softly. */
+/* Suspense reveal: the skeleton leaves first, THEN the real content arrives. */
 ::view-transition-old(.pt-reveal-out) { animation: pt-out 150ms var(--pt-ease-in) both; }
-::view-transition-new(.pt-reveal-in) { animation: pt-in calc(var(--pt-dur) * 0.6) var(--pt-ease) both, pt-rise calc(var(--pt-dur) * 0.6) var(--pt-ease) both; }
+::view-transition-new(.pt-reveal-in) { animation: pt-in calc(var(--pt-dur) * 0.5) var(--pt-ease) 150ms both, pt-rise calc(var(--pt-dur) * 0.5) var(--pt-ease) 150ms both; }
 
 @keyframes pt-out { to { opacity: 0; } }
 @keyframes pt-in { from { opacity: 0; } }
 @keyframes pt-rise { from { translate: 0 var(--pt-rise); } }
 @keyframes pt-slide { from { translate: var(--offset) 0; } }
 
+/* ---- Curtain (GSAP) support ------------------------------------------------
+   While the box covers the page, the new page's content is held invisible. After the box has
+   left, the content arrives on its own. */
+html[data-pt-hold] #main { opacity: 0; }
+html[data-pt-content='in'] #main { animation: pt-content-in calc(var(--pt-dur) * 0.35) var(--pt-ease) both; }
+@keyframes pt-content-in { from { opacity: 0; translate: 0 var(--pt-rise); } }
+/* The header is drawn by the browser above everything during a native transition, which would
+   put it on top of the box. Un-name it while the curtain runs. */
+html[data-pt-curtain] .site-header { view-transition-name: none; }
+
 /* Reduced motion: keep a short fade (it still tells people something changed),
-   remove every kind of movement, and make shared elements snap. */
+   remove every kind of movement, and make shared elements snap. Still sequential. */
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(.pt-fade), ::view-transition-old(.pt-slide-forward), ::view-transition-old(.pt-slide-back), ::view-transition-old(.pt-reveal-out) {
     animation: pt-out 100ms linear both;
   }
   ::view-transition-new(.pt-fade), ::view-transition-new(.pt-slide-forward), ::view-transition-new(.pt-slide-back), ::view-transition-new(.pt-reveal-in) {
-    animation: pt-in 160ms linear 60ms both;
+    animation: pt-in 160ms linear 100ms both;
   }
   ::view-transition-group(.morph) { animation-duration: 0.01ms; }
 }

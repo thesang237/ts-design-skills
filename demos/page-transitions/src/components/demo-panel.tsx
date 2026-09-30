@@ -28,14 +28,16 @@ const write = (key: string, value: string) => {
 export function DemoPanel() {
   const [open, setOpen] = useState(true)
   const [style, setStyle] = useState<TransitionStyle>('fade')
-  const [dur, setDur] = useState(500)
+  const [dur, setDur] = useState(800)
   const [ease, setEase] = useState(EASES[0].value)
   const [slow, setSlow] = useState(false)
   const [noVt, setNoVt] = useState(false)
+  const [exitDown, setExitDown] = useState(false)
 
   useEffect(() => {
+    setExitDown(read('pt:curtain-exit', 'up') === 'down')
     setStyle(read(STYLE_KEY, 'fade') as TransitionStyle)
-    setDur(Number(read('pt:dur', '500')))
+    setDur(Number(read('pt:dur', '800')))
     setEase(read('pt:ease', EASES[0].value))
     setSlow(read('pt:demo-slow', '0') === '1')
     setNoVt(read(NO_VT_KEY, '0') === '1')
@@ -74,8 +76,8 @@ export function DemoPanel() {
             Duration <output>{dur} ms</output>
             <input
               type="range"
-              min={200}
-              max={1200}
+              min={300}
+              max={1400}
               step={50}
               value={dur}
               onChange={(e) => {
@@ -103,6 +105,19 @@ export function DemoPanel() {
               ))}
             </select>
           </label>
+          <label className="row">
+            Curtain box leaves…
+            <select
+              value={exitDown ? 'down' : 'up'}
+              onChange={(e) => {
+                setExitDown(e.target.value === 'down')
+                write('pt:curtain-exit', e.target.value)
+              }}
+            >
+              <option value="up">Upward (keeps going)</option>
+              <option value="down">Downward (like a shutter)</option>
+            </select>
+          </label>
           <hr />
           <label className="check">
             <input
@@ -113,7 +128,7 @@ export function DemoPanel() {
                 write('pt:demo-slow', e.target.checked ? '1' : '0')
               }}
             />
-            Make the loader slow (adds 2.5 s, demo only)
+            Make loading slower than the intro (waits 2.5 s, demo only)
           </label>
           <label className="check">
             <input

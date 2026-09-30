@@ -1,0 +1,45 @@
+{
+  "project": "Scroll-driven WebGL guide",
+  "date": "2026-09-30",
+  "summary": "Built a 13-chapter learn page with 25+ live demos that teaches a scroll-driven WebGL site. The headline lesson: several 'done' moments weren't done — a check that silently never ran, and layout bugs that only showed at phone width.",
+  "stats": [
+    { "label": "Corrections", "value": 3 },
+    { "label": "Breaks", "value": 7 },
+    { "label": "Slow spots", "value": 2 },
+    { "label": "Worth keeping", "value": 3 },
+    { "label": "Proposals", "value": 7 }
+  ],
+  "evidence": [
+    { "id": "E1", "kind": "broke", "source": "conversation · final checks", "text": "The type-check was wrapped in a 'timeout' command that doesn't exist on macOS, so it printed 'done' without running. The real run later found 5 type errors." },
+    { "id": "E2", "kind": "broke", "source": "conversation · first screenshots", "text": "The host site's CSS reset unsets <pre> and scales the root font size with the window, so all rem-based spacing on the new page came out ~60% of the intended size." },
+    { "id": "E3", "kind": "broke", "source": "conversation · hot reload", "text": "A stylesheet imported inside a lazily loaded chunk went missing after a hot reload; the page showed unstyled until a full reload." },
+    { "id": "E4", "kind": "broke", "source": "conversation · particle demo", "text": "React's development double-mount triggered a shape change whose 'kill all tweens of this object' also killed the gather tween; particles stayed as a cloud." },
+    { "id": "E5", "kind": "broke", "source": "conversation · console", "text": "An animation frame read a React ref after the component unmounted (null.style)." },
+    { "id": "E6", "kind": "broke", "source": "conversation · phone check", "text": "Hidden glossary tooltips near the right edge widened the phone layout: page width 467px on a 375px screen." },
+    { "id": "E7", "kind": "broke", "source": "git diff · lint run", "text": "13 lint errors at the end: setState inside effects, '//////' text read as a comment, callbacks returning promises." },
+    { "id": "E8", "kind": "slow", "source": "conversation · verification", "text": "The browser preview was hidden, so screenshots failed; switched to DOM checks and a headless browser." },
+    { "id": "E9", "kind": "slow", "source": "conversation · setup", "text": "The dev server port belonged to another session; worked around by attaching to the running server." },
+    { "id": "E10", "kind": "corrected", "source": "conversation · taste questions", "text": "Learn pages should default to the chapter-guide style (tabs, demos with dials, flashcards, quiz)." },
+    { "id": "E11", "kind": "corrected", "source": "conversation · taste questions", "text": "Stronger curves are allowed only in an 'immersive site' mode; special effects are opt-in by name." },
+    { "id": "E12", "kind": "corrected", "source": "memory · feedback", "text": "Explain in plain language and ask before any design decision." },
+    { "id": "E13", "kind": "worked", "source": "conversation · measurement", "text": "Headless browser on the real GPU scrolled the whole page with a draw-call counter: 60fps, 16–28 draw calls, flat memory after 3 returns." },
+    { "id": "E14", "kind": "worked", "source": "code review", "text": "One shared canvas harness (resize, pointer, pause off screen, dispose) kept 20+ WebGL demos consistent and leak-free." },
+    { "id": "E15", "kind": "worked", "source": "conversation · phone check", "text": "An overflow scan across every tab at 375px and 1440px found the tooltip bug in one pass." }
+  ],
+  "findings": {
+    "corrected": ["Default learn-page style is the chapter guide (E10)", "Immersive-site mode for stronger curves; effects only when named (E11)", "Plain language, ask before design decisions (E12)"],
+    "broke": ["A check reported 'done' without running (E1)", "Host CSS reset shrank spacing on the new page (E2)", "Lazy-chunk stylesheet lost on hot reload (E3)", "Dev double-mount killed an unrelated tween (E4)", "Frame loop read a ref after unmount (E5)", "Hidden tooltips widened phones (E6)", "Lint errors left to the end (E7)"],
+    "slow": ["Hidden preview pane blocked screenshots (E8)", "Port owned by another session (E9)"],
+    "worked": ["Headless GPU scroll measurement with a draw-call counter (E13)", "One canvas harness for every demo (E14)", "Overflow scan at two widths (E15)"]
+  },
+  "proposals": [
+    { "id": "R1", "kind": "checklist", "size": "S", "target": "plugins/quality-check/skills/quality-check/SKILL.md", "section": "Quality checklist", "title": "Prove each check actually ran", "why": "A silent check looked like a passing check, and errors reached the end.", "before": "(new)", "after": "- [ ] Every check that printed nothing was confirmed to have run (exit code, or a known-bad input fails it)", "evidence": ["E1"], "options": null },
+    { "id": "R2", "kind": "technique", "size": "M", "target": "plugins/quality-check/skills/quality-check/references/layout-scan.md", "section": "new file", "title": "Overflow scan at phone and desktop width", "why": "One script found a sideways-scroll bug that screenshots missed.", "before": "(new)", "after": "For each page/tab at 375px and 1440px: report documentElement.scrollWidth and the first elements whose right edge passes the viewport (ignoring scroll containers).", "evidence": ["E6", "E15"], "options": null },
+    { "id": "R3", "kind": "pitfall", "size": "S", "target": "plugins/ui-craft/skills/ui-craft/references/pitfalls.md", "section": "Layout", "title": "Hidden tooltips widen phones", "why": "Invisible elements still take space; the page scrolled sideways on phones.", "before": "(new row)", "after": "| Hidden tooltip near the edge | Page scrolls sideways at 375px | overflow-x: clip on the page root (keeps sticky working) |", "evidence": ["E6"], "options": null },
+    { "id": "R4", "kind": "pitfall", "size": "S", "target": "plugins/web-motion/skills/web-motion/references/pitfalls.md", "section": "React and cleanup", "title": "Killing all tweens of an object", "why": "Stopping one animation silently stopped another on the same object.", "before": "(new row)", "after": "gsap.killTweensOf(obj) kills every tween on obj. Pass the properties: killTweensOf(obj, 'morph,burst'). In dev, effects run twice: compare keys instead of 'skip first run'.", "evidence": ["E4"], "options": null },
+    { "id": "R5", "kind": "pitfall", "size": "S", "target": "plugins/create-learn-page/skills/create-learn-page/references/pitfalls.md", "section": "Host site", "title": "Check the host site's CSS reset first", "why": "The new page inherited rules that shrank its spacing and broke code blocks.", "before": "(new)", "after": "Before styling, read the global reset: root font-size, pre/blockquote resets. Scope fixes to the page (html:has(.page-root) { font-size: 16px }).", "evidence": ["E2"], "options": null },
+    { "id": "R6", "kind": "rule", "size": "S", "target": "plugins/3d-web/skills/3d-web/SKILL.md", "section": "Core rules", "title": "Frame loops never read React refs", "why": "A frame after unmount crashed the demo.", "before": "(new)", "after": "Frame callbacks use the element and objects captured at setup, never ref.current.", "evidence": ["E5", "E14"], "options": null },
+    { "id": "R7", "kind": "answer", "size": "S", "target": "plugins/create-learn-page/skills/create-learn-page/SKILL.md", "section": "Sang's answers", "title": "Default learn-page style", "why": "The designer picked a default during this project.", "before": "(not set)", "after": "Chapter guide by default.", "evidence": ["E10"], "options": [ { "label": "Chapter guide", "recommended": true, "description": "tabs, demos with dials, flashcards, quiz" }, { "label": "Single long page", "description": "8–12 steps" }, { "label": "Pick by size", "description": "ask each time" } ] }
+  ],
+  "watch": ["Preview pane hidden during verification (E8): if it happens again, add 'verify with DOM checks when screenshots fail' to quality-check.", "Dev-server port owned by another session (E9): environment, not a skill lesson.", "Lazy-chunk stylesheet lost on hot reload (E3): dev-only; promote if it shows up in a second project."]
+}

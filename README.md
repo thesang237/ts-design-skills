@@ -7,10 +7,12 @@ A personal collection of design skills for [Claude Code](https://claude.com/clau
 | Skill | What it's for |
 | --- | --- |
 | **ui-craft** | Interface design craft: layout, spacing, typography, color, polish |
-| **web-motion** | Motion presets (easing, durations, stagger) shared by CSS, GSAP and Motion; scroll reveals and scroll scenes; hover and press; text reveals; reduced motion and performance. Has a runnable demo in `demos/web-motion` |
+| **web-motion** | Motion presets (easing, durations, stagger) shared by CSS, GSAP and Motion; scroll reveals, scroll scenes and progress mapping; hover and press; text reveals; an immersive-site mode and opt-in effects (one-film scroll, magnetic buttons, scroll-speed reactions, decode HUD); reduced motion and performance. Has a runnable demo in `demos/web-motion` |
 | **page-transitions** | First-load intro/loader and page transitions for React / Next.js (native View Transitions, GSAP, Motion). Has a runnable demo in `demos/page-transitions` |
-| **3d-web** | 3D on the web: scenes, lighting, materials, performance |
+| **3d-web** | three.js / React Three Fiber in Next.js: setup, camera and light presets, shaders, glTF compression, scroll- and pointer-driven 3D, blending with page UI, device quality tiers, poster fallbacks, WebGPU, cleanup. Has a runnable demo in `demos/3d-web` |
 | **quality-check** | Reviewing work for consistency, accessibility and polish |
+| **create-learn-page** | Learn / breakdown pages that teach how a project works: curriculum, chapter guide, live demos with dials, flashcards and quiz, verification |
+| **skill-retro** | Run `/skill-retro` at the end of a project: evidence, then corrected / broke / slow / worked, then proposed skill updates in a visual report, saved only when approved. Sample report in `demos/skill-retro` |
 
 ## How it's organized (plain-language version)
 
@@ -82,6 +84,9 @@ Then install whichever skills you want:
 /plugin install web-motion@ts-design-skills
 /plugin install 3d-web@ts-design-skills
 /plugin install quality-check@ts-design-skills
+/plugin install page-transitions@ts-design-skills
+/plugin install create-learn-page@ts-design-skills
+/plugin install skill-retro@ts-design-skills
 ```
 
 (For a private repository, you need to be signed in to GitHub on your computer.)

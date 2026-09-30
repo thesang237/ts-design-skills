@@ -81,6 +81,13 @@ React: `<ReactLenis root options={{ autoRaf: false, anchors: true }} ref={lenisR
 - On route change: `lenis.scrollTo(0, { immediate: true })`.
 - Nested scroll areas (menus, modals, code blocks): add `data-lenis-prevent`.
 - Lenis doesn't support CSS scroll-snap; use `lenis/snap` or skip smooth scrolling on that page.
+- **Lock and unlock:** `lenis.stop()` while an intro plays or a modal/overlay is open, `lenis.start()`
+  after; `lenis.scrollTo(y, { force: true })` still works while stopped. Overlays that scroll
+  themselves get `data-lenis-prevent`.
+- **Always start at the top** on story pages: `history.scrollRestoration = 'manual'` and
+  `lenis.scrollTo(0, { immediate: true, force: true })` on mount.
+- **Looping pages:** `infinite: true` (requires `syncTouch: true` for touch devices).
+- **Scroll speed:** `lenis.velocity` (signed, per frame) feeds speed-based effects (`effects/scroll-velocity.md`).
 
 ## Things that keep scroll motion correct
 
@@ -88,6 +95,8 @@ React: `<ReactLenis root options={{ autoRaf: false, anchors: true }} ref={lenisR
   must not recalculate every trigger.
 - Create triggers top-to-bottom, or set `refreshPriority`, when pins change positions below them.
 - After fonts or images change heights, call `ScrollTrigger.refresh()` once, not on every load event.
+  For content that keeps changing height (lazy tabs, async code blocks), observe the container with a
+  `ResizeObserver` and refresh debounced (~200ms) only when its height actually changed.
 - Never read layout (`getBoundingClientRect`, `offsetTop`) in a scroll handler. For "navbar changes
   colour over dark sections", use one ScrollTrigger per section with `toggleClass`, or an
   `IntersectionObserver`.

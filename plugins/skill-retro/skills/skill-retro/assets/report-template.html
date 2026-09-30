@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Skill retro</title>
+<style>
+  :root {
+    --bg: #f6f5f2; --paper: #ffffff; --ink: #17181b; --dim: #5d6168; --faint: #8b9098; --line: #e4e2dc;
+    --corrected: #6a4dd8; --broke: #d0433a; --slow: #c7860e; --worked: #1f8a5b; --accent: #17181b;
+    --add: #e7f5ec; --add-ink: #145c3c; --del: #fbeaea; --del-ink: #8f2b24; --chip: #efeee9;
+    --radius: 14px; --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111214; --paper: #18191c; --ink: #eceae6; --dim: #a4a7ad; --faint: #767a82; --line: #2a2c30;
+      --corrected: #a28bff; --broke: #ff7a70; --slow: #f0b44c; --worked: #4fd197; --accent: #eceae6;
+      --add: #12301f; --add-ink: #8fe0b4; --del: #3a1714; --del-ink: #ffb1aa; --chip: #232428;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 56px 24px 120px; }
+  .eyebrow { font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
+  h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.02; letter-spacing: -.035em; margin: 14px 0 16px; font-weight: 650; }
+  h2 { font-size: 22px; letter-spacing: -.015em; margin: 0 0 16px; font-weight: 650; }
+  .lead { font-size: 18px; color: var(--dim); max-width: 64ch; margin: 0; }
+  section { margin-top: 64px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 36px; }
+  .stat { background: var(--paper); padding: 18px 20px; }
+  .stat b { display: block; font-size: 30px; letter-spacing: -.03em; font-weight: 650; }
+  .stat span { font-size: 12px; color: var(--faint); }
+  .kinds { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+  .kind { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; border-top: 3px solid var(--c); }
+  .kind h3 { margin: 0 0 10px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--c); }
+  .kind ul { margin: 0; padding-left: 18px; color: var(--ink); }
+  .kind li { margin: 6px 0; font-size: 14px; }
+  .kind .empty { color: var(--faint); font-size: 14px; }
+  .toolbar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 0; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); }
+  .filter { font: inherit; font-size: 13px; border: 1px solid var(--line); background: var(--paper); color: var(--dim); border-radius: 999px; padding: 6px 12px; cursor: pointer; transition: background .16s var(--ease), color .16s var(--ease), border-color .16s var(--ease); }
+  .filter[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .cards { display: grid; gap: 14px; }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; transition: border-color .16s var(--ease), box-shadow .24s var(--ease); }
+  .card.is-picked { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .card-head { display: flex; gap: 14px; align-items: flex-start; }
+  .pick { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--accent); flex: none; cursor: pointer; }
+  .card h4 { margin: 0; font-size: 17px; letter-spacing: -.01em; font-weight: 620; }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip { font: 500 11.5px/1 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--chip); color: var(--dim); padding: 5px 8px; border-radius: 6px; }
+  .chip.id { background: var(--accent); color: var(--bg); }
+  .chip.ev { cursor: help; }
+  .why { margin: 14px 0 12px; color: var(--dim); }
+  .path { font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--faint); word-break: break-all; }
+  .diff { display: grid; gap: 6px; margin-top: 10px; }
+  .diff pre { margin: 0; padding: 10px 12px; border-radius: 8px; white-space: pre-wrap; word-break: break-word; font: 12.5px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .del { background: var(--del); color: var(--del-ink); }
+  .add { background: var(--add); color: var(--add-ink); }
+  .opts { margin: 12px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+  .opts li { border: 1px dashed var(--line); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
+  .opts li.rec { border-style: solid; border-color: var(--corrected); }
+  .ev-list { display: grid; gap: 8px; }
+  .ev-item { display: grid; grid-template-columns: 56px 1fr; gap: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 14px; }
+  .ev-item .src { font-size: 12px; color: var(--faint); }
+  .watch li { color: var(--dim); margin: 6px 0; }
+  .approve { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; gap: 10px; align-items: center; background: var(--accent); color: var(--bg); padding: 10px 12px 10px 18px; border-radius: 999px; box-shadow: 0 10px 40px rgba(0,0,0,.25); font-size: 14px; max-width: calc(100vw - 32px); }
+  .approve[hidden] { display: none; }
+  .newtag { font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--add-ink); background: var(--add); padding: 5px 8px; border-radius: 6px; justify-self: start; }
+  .approve button { font: inherit; font-size: 13px; border: 0; border-radius: 999px; padding: 7px 14px; background: var(--bg); color: var(--ink); cursor: pointer; }
+  .approve code { font: 12.5px ui-monospace, SFMono-Regular, Menlo, monospace; opacity: .9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  @media (max-width: 640px) { .wrap { padding-top: 36px; } .approve { width: calc(100vw - 32px); justify-content: space-between; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main class="wrap" id="app" aria-live="polite"></main>
+<div class="approve" id="approve" hidden>
+  <span>Reply in chat with:</span><code id="approve-text"></code><button type="button" id="copy">Copy</button>
+</div>
+
+<!-- The retro fills ONLY this block (see references/proposals.md). -->
+<script type="application/json" id="retro-data">
+{
+  "project": "Project name",
+  "date": "yyyy-mm-dd",
+  "summary": "What was built, and the headline lesson.",
+  "stats": [],
+  "evidence": [],
+  "findings": { "corrected": [], "broke": [], "slow": [], "worked": [] },
+  "proposals": [],
+  "watch": []
+}
+</script>
+
+<script>
+(() => {
+  const data = JSON.parse(document.getElementById('retro-data').textContent);
+  const app = document.getElementById('app');
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const KINDS = [['corrected', 'Corrected', 'What the designer changed'], ['broke', 'Broke', 'Errors and false “done”'], ['slow', 'Slow', 'Retries, waits, detours'], ['worked', 'Worked', 'Worth keeping']];
+  const evById = Object.fromEntries((data.evidence || []).map((e) => [e.id, e]));
+  const skillOf = (p) => (p.target || '').match(/plugins\/([^/]+)/)?.[1] || (p.kind === 'memory' ? 'memory' : p.kind === 'project-note' ? 'project notes' : 'other');
+  const skills = [...new Set((data.proposals || []).map(skillOf))];
+  const picked = new Set();
+  let filter = 'all';
+
+  const findings = KINDS.map(([k, label, hint]) => {
+    const items = data.findings?.[k] || [];
+    return `<div class="kind" style="--c: var(--${k})"><h3>${label}</h3>${items.length ? `<ul>${items.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>` : `<p class="empty">Nothing found. (${hint})</p>`}</div>`;
+  }).join('');
+
+  const card = (p) => {
+    const ev = (p.evidence || []).map((id) => `<span class="chip ev" title="${esc(evById[id]?.text || '')}">${esc(id)}</span>`).join('');
+    const opts = Array.isArray(p.options) && p.options.length ? `<ul class="opts">${p.options.map((o) => `<li class="${o.recommended ? 'rec' : ''}">${esc(o.label)}${o.recommended ? ' · recommended' : ''}${o.description ? ` — <span class="path">${esc(o.description)}</span>` : ''}</li>`).join('')}</ul>` : '';
+    const isNew = !p.before || /^\((new|not set)/i.test(p.before);
+    const diff = p.before || p.after ? `<div class="diff">${isNew ? `<span class="newtag">${esc(p.before || '(new)').replace(/[()]/g, '')}</span>` : `<pre class="del">${esc(p.before)}</pre>`}${p.after ? `<pre class="add">${esc(p.after)}</pre>` : ''}</div>` : '';
+    return `<article class="card" data-id="${esc(p.id)}" data-skill="${esc(skillOf(p))}">
+      <div class="card-head">
+        <input class="pick" type="checkbox" aria-label="Select ${esc(p.id)}" data-pick="${esc(p.id)}" />
+        <div style="min-width:0">
+          <h4>${esc(p.title)}</h4>
+          <div class="meta"><span class="chip id">${esc(p.id)}</span><span class="chip">${esc(p.kind)}</span><span class="chip">size ${esc(p.size || 'S')}</span><span class="chip">${esc(skillOf(p))}</span>${ev}</div>
+        </div>
+      </div>
+      <p class="why">${esc(p.why)}</p>
+      <div class="path">${esc(p.target || '')}${p.section ? ' → ' + esc(p.section) : ''}</div>
+      ${diff}${opts}
+    </article>`;
+  };
+
+  const render = () => {
+    const list = (data.proposals || []).filter((p) => filter === 'all' || skillOf(p) === filter);
+    app.innerHTML = `
+      <div class="eyebrow">Skill retro · ${esc(data.date)}</div>
+      <h1>${esc(data.project)}</h1>
+      <p class="lead">${esc(data.summary)}</p>
+      ${data.stats?.length ? `<div class="stats">${data.stats.map((s) => `<div class="stat"><b>${esc(s.value)}</b><span>${esc(s.label)}</span></div>`).join('')}</div>` : ''}
+      <section><h2>What happened</h2><div class="kinds">${findings}</div></section>
+      <section>
+        <h2>Proposed changes <span class="path">(${(data.proposals || []).length})</span></h2>
+        <div class="toolbar" role="toolbar" aria-label="Filter by skill">
+          ${['all', ...skills].map((s) => `<button class="filter" type="button" aria-pressed="${filter === s}" data-filter="${esc(s)}">${esc(s)}</button>`).join('')}
+        </div>
+        <div class="cards">${list.map(card).join('') || '<p class="empty">No proposals.</p>'}</div>
+      </section>
+      ${data.watch?.length ? `<section class="watch"><h2>Watch (not promoted yet)</h2><ul>${data.watch.map((w) => `<li>${esc(w)}</li>`).join('')}</ul></section>` : ''}
+      <section><h2>Evidence</h2><div class="ev-list">${(data.evidence || []).map((e) => `<div class="ev-item"><span class="chip" style="align-self:start;background:var(--${esc(e.kind)});color:var(--bg)">${esc(e.id)}</span><div>${esc(e.text)}<div class="src">${esc(e.kind)} · ${esc(e.source)}</div></div></div>`).join('')}</div></section>`;
+    app.querySelectorAll('[data-pick]').forEach((el) => {
+      el.checked = picked.has(el.dataset.pick);
+      el.closest('.card').classList.toggle('is-picked', el.checked);
+    });
+  };
+
+  const sync = () => {
+    const bar = document.getElementById('approve');
+    const ids = (data.proposals || []).map((p) => p.id).filter((id) => picked.has(id));
+    bar.hidden = !ids.length;
+    document.getElementById('approve-text').textContent = `Apply ${ids.join(', ')}`;
+  };
+
+  app.addEventListener('change', (e) => {
+    const id = e.target.dataset?.pick;
+    if (!id) return;
+    e.target.checked ? picked.add(id) : picked.delete(id);
+    e.target.closest('.card').classList.toggle('is-picked', e.target.checked);
+    sync();
+  });
+  app.addEventListener('click', (e) => {
+    const f = e.target.dataset?.filter;
+    if (!f) return;
+    filter = f;
+    render();
+  });
+  document.getElementById('copy').addEventListener('click', async (e) => {
+    try { await navigator.clipboard.writeText(document.getElementById('approve-text').textContent); e.target.textContent = 'Copied'; setTimeout(() => (e.target.textContent = 'Copy'), 1400); } catch { /* clipboard blocked: select the text instead */ }
+  });
+  document.title = `Retro · ${data.project}`;
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 {
   "name": "web-motion",
-  "version": "0.2.0",
-  "description": "Motion taste and technique for the web: named easing, duration and stagger presets shared by CSS, GSAP and Motion; scroll reveals and scroll-mapped scenes; hover and press micro-interactions; text reveals; reduced motion and performance rules.",
+  "version": "0.3.0",
+  "description": "Motion taste and technique for the web: named easing, duration and stagger presets shared by CSS, GSAP and Motion; scroll reveals, scroll-mapped scenes and progress mapping; hover and press micro-interactions; text reveals; an immersive-site mode and opt-in effects (one-film scroll, magnetic buttons, scroll-speed reactions, decode HUD); reduced motion and performance rules.",
   "author": {
     "name": "Sang"
   }

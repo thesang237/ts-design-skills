@@ -24,7 +24,8 @@ so retuning a site means changing one value. Sang's defaults (taste session 2026
 | reduced: fade in / out | 160ms / 100ms | Replaces all movement when reduced motion is on |
 
 Smooth-out is the only arrival curve: no strong-out, expo-out or library presets (`power3.out`,
-`expo.out`, `back.out`), in any project.
+`expo.out`, `back.out`), in any project, **except inside immersive-site mode** (a stronger arrival
+curve and one elastic release, scoped by class; see `immersive.md`).
 
 ## 1. The source file (TypeScript)
 

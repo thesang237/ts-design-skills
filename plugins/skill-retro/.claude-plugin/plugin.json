@@ -1,0 +1,8 @@
+{
+  "name": "skill-retro",
+  "version": "0.1.0",
+  "description": "End-of-project retrospective: gathers evidence from the conversation, memory and git, sorts it into corrected / broke / slow / worked, and proposes small, approved-only updates to your other design skills in a visual report.",
+  "author": {
+    "name": "Sang"
+  }
+}

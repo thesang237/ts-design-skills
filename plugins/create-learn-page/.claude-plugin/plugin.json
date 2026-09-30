@@ -1,0 +1,8 @@
+{
+  "name": "create-learn-page",
+  "version": "0.1.0",
+  "description": "Build learn / breakdown pages that teach how a page or project works: study the source, plan chapters, plain-language sections with live demos, flashcards and a quiz, then verify on desktop and phone.",
+  "author": {
+    "name": "Sang"
+  }
+}

@@ -31,6 +31,16 @@
       "name": "quality-check",
       "source": "./plugins/quality-check",
       "description": "Review a design or build for consistency, accessibility and polish."
+    },
+    {
+      "name": "create-learn-page",
+      "source": "./plugins/create-learn-page",
+      "description": "Build learn / breakdown pages that teach how a page or project works: study the source, plan chapters, plain-language sections with live demos, flashcards and a quiz, then verify on desktop and phone."
+    },
+    {
+      "name": "skill-retro",
+      "source": "./plugins/skill-retro",
+      "description": "End-of-project retrospective: gathers evidence from the conversation, memory and git, sorts it into corrected / broke / slow / worked, and proposes small, approved-only updates to your other design skills in a visual report."
     }
   ]
 }

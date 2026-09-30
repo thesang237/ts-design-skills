@@ -1,13 +1,13 @@
 ---
 name: web-motion
-description: Use when adding, changing or reviewing any animation or motion on a website or web app, for example easing and duration choices, entrance and scroll-triggered reveals, scroll-mapped scenes (enter, hold, exit tied to scroll progress, pinned or in flow), stagger and choreography, hover and press micro-interactions, text reveals (split lines/words/characters, masks, scramble, typing), springs and drag, smooth scrolling, or choosing between CSS, GSAP and Motion. Provides named motion presets (one source for CSS, GSAP and Motion), stagger and choreography rules, reduced-motion recipes for every tool, and performance rules (transform/opacity only, no layout thrashing). For page loaders and route transitions use page-transitions; for WebGL/3D motion use 3d-web.
+description: Use when adding, changing or reviewing any animation or motion on a website or web app, for example easing and duration choices, entrance and scroll-triggered reveals, scroll-mapped scenes (enter, hold, exit tied to scroll progress, pinned or in flow), stagger and choreography, hover and press micro-interactions, text reveals (split lines/words/characters, masks, scramble, typing), springs and drag, smooth scrolling, scroll-to-value mapping and pointer smoothing/parallax, or choosing between CSS, GSAP and Motion. Also holds opt-in effects used only when the request names them: a one-film scroll page (master timeline in screens of scroll), magnetic buttons, scroll-speed reactions and a decode HUD, plus an immersive-site mode for WebGL storytelling sites. Provides named motion presets (one source for CSS, GSAP and Motion), stagger and choreography rules, reduced-motion recipes for every tool, and performance rules (transform/opacity only, no layout thrashing). For page loaders and route transitions use page-transitions; for WebGL/3D motion use 3d-web.
 ---
 
 # Web motion
 
 Motion should explain what changed and make the interface feel responsive, never make anyone wait.
-Checked on 2026-09-30 against GSAP 3.15, Motion 13.4, Lenis 1.3.26, React 19 and current CSS
-support. Code for everything below is in `references/`, and a runnable demo with a live tuner is in
+Checked on 2026-09-30 against GSAP 3.15 (incl. `quickTo`, SplitText `autoSplit`), Motion 13.4,
+Lenis 1.3.26 (`stop`/`start`, `infinite`, `respectReducedMotion`), React 19 and current CSS support. Code for everything below is in `references/`, and a runnable demo with a live tuner is in
 `demos/web-motion/`.
 
 Related skills (don't repeat them here):
@@ -37,6 +37,12 @@ Never pick these silently. Ask, then write the answers down in the project.
 - **Hover is subtle by default** (colour, opacity, a 2px lift, press at 0.97). Expressive hovers (image zoom, sliding details) **only on showcase/work cards**.
 - **Scroll scenes** (added 2026-09-30): a section's heading, text and UI enter with the scroll, hold still, then exit. Layout, hold length and scroll-up behaviour (rewind, play back, stay) are chosen per project; defaults are pinned, medium hold, rewind.
 - **Smooth scrolling only for editorial or portfolio sites**, opt-in per project, wheel only, off for reduced motion, never for apps or dashboards.
+- **Immersive-site mode** (added 2026-09-30): only for WebGL / scroll-storytelling sites the designer
+  calls immersive. It allows a stronger arrival curve, longer text reveals over 3D, and one playful
+  release (magnetic buttons). Everything else keeps the house style. Values: `references/immersive.md`.
+- **Special effects are opt-in by name** (added 2026-09-30): the one-film scroll page, magnetic
+  buttons, scroll-speed reactions and the decode HUD are in the toolkit but are **never applied unless
+  the request names them** (table below).
 
 All values live in one presets file: `references/presets.md`.
 
@@ -53,6 +59,19 @@ All values live in one presets file: `references/presets.md`.
 | Split text, masks, scramble, typing, multi-step timelines | **GSAP** (SplitText, timelines, CustomEase) | Precise sequencing, re-splits by itself on font load and resize |
 | Drag, swipe, anything that follows a finger | **Motion springs** | They carry the hand's speed and can be interrupted |
 | Page loaders and route changes | **page-transitions skill** | |
+
+## Opt-in effects: use only when the request names them
+
+These live in `references/effects/`. Don't suggest or add them on your own; when a request uses one
+of the trigger words, read that file and follow it. They default to the house style; in
+immersive-site mode they may use the immersive presets.
+
+| Effect | Trigger words in the request | File |
+| --- | --- | --- |
+| **One-film scroll page**: the whole page is one master timeline measured in screens of scroll, with a section rail and jump links | "one film", "master timeline", "scrollytelling", "scroll story", "cinematic scroll", "whole page on scroll" | `effects/one-film-scroll.md` |
+| **Magnetic buttons**: controls lean toward the cursor and settle back | "magnetic", "sticky cursor button", "button follows the mouse" | `effects/magnetic.md` |
+| **Scroll-speed reactions**: fast scrolling adds a little glitch, blur, tilt or sound | "scroll velocity", "react to scroll speed", "speed-based" | `effects/scroll-velocity.md` |
+| **Decode HUD**: labels decode from glyphs; rules and leader lines draw themselves; live telemetry numbers | "decode", "scramble labels", "HUD", "terminal labels", "leader lines", "drawn lines" | `effects/decode-hud.md` |
 
 Combine them freely, but **one tool owns one element's property at a time**. Never let CSS
 transitions and GSAP both animate `transform` on the same element.
@@ -74,6 +93,12 @@ transitions and GSAP both animate `transform` on the same element.
 13. **Infinite loops pause off screen** and stop entirely for reduced motion if they involve movement.
 14. **One Motion package** (`motion`, imported from `motion/react`), GSAP only through `useGSAP()` in React (automatic cleanup), plugins registered once.
 15. **No brand or client specifics** in reusable code: placeholder names, copy and colours.
+16. **Smoothing is frame-rate independent.** Anything that follows a moving target (pointer, scroll
+    velocity, parallax) uses `damp(current, target, λ, dt)` or `gsap.quickTo`, never "lerp by a
+    fixed amount per frame" (faster on 120Hz screens). See `references/progress-mapping.md`.
+17. **Scroll drives numbers; numbers drive visuals.** Map scroll to 0..1 progress, then to values
+    (normalise → clamp → ease → lerp). Discrete UI (captions, active dots) changes only when its value
+    changes, never re-rendered every frame.
 
 ## Quality checklist (run before calling it done)
 
@@ -90,6 +115,8 @@ transitions and GSAP both animate `transform` on the same element.
 - [ ] Scroll scenes: hidden before, still during the hold, gone after; scroll back up and check the chosen rewind / play back / stay behaviour, slowly and fast
 - [ ] Reload with the page scrolled halfway: everything above and in view is visible
 - [ ] Works in Chromium, Firefox and WebKit, phone and desktop, light and dark
+- [ ] Opt-in effects appear only where the request named them; immersive presets only on sites agreed as immersive
+- [ ] Pointer-following and velocity effects feel the same at 60Hz and 120Hz (damp / quickTo, not per-frame lerp)
 - [ ] The designer's answers above are respected and written down
 
 ## Reference files
@@ -103,4 +130,7 @@ transitions and GSAP both animate `transform` on the same element.
 - `references/text-reveals.md`: masked and unmasked split reveals, scramble, typing, with enter/exit/hover
 - `references/reduced-motion.md`: a recipe for CSS, Motion, GSAP, Lenis and loops
 - `references/performance.md`: budgets, what is cheap and what isn't, a measuring script
+- `references/progress-mapping.md`: normalise → clamp → ease → lerp, smoothstep, per-item stagger windows, damp and quickTo
+- `references/immersive.md`: the immersive-site mode presets and where they may be used
+- `references/effects/one-film-scroll.md`, `magnetic.md`, `scroll-velocity.md`, `decode-hud.md`: opt-in effects (only when named)
 - `references/pitfalls.md`: what breaks, and how it was found

@@ -34,6 +34,15 @@ normal, reduced motion, and phone with 4x CPU slowdown) and by building the demo
 - 23 files ran GSAP inside a plain `useEffect`, cleaning up by hand (one killed ScrollTriggers by
   matching a selector string). Use `useGSAP()`; it reverts everything it created.
 - Both `framer-motion` and `motion` installed: two copies of the same library. Use `motion`, import `motion/react`.
+- `gsap.killTweensOf(obj)` kills **every** tween on that object. Stopping a "morph" tween also
+  stopped an unrelated "gather" tween on the same object, and particles stayed scattered. Pass the
+  properties: `gsap.killTweensOf(obj, 'morph,burst')`.
+- A "skip the effect's first run" guard broke under React's development double-mount (the second
+  run did the skipped work). Compare against the last applied value instead.
+- `gsap.to()` called on every `mousemove` for a follower creates a new tween per event. Use
+  `gsap.quickTo()`.
+- A frame loop kept writing to `ref.current.style` after unmount (`null.style`). Loops use the element
+  captured when they were set up, and are removed in cleanup.
 - React rendered text inside an element that SplitText then split. Changing that text prop later
   makes React update nodes that no longer exist. Render the animated layer empty and let the
   engine fill it (see `text-reveals.md`).
@@ -57,6 +66,11 @@ normal, reduced motion, and phone with 4x CPU slowdown) and by building the demo
 - The shared Lenis wrapper drove Lenis from GSAP's ticker but never called `ScrollTrigger.update` on
   Lenis's scroll event, and never set `lagSmoothing(0)` or loaded `lenis.css`. Triggers can lag
   behind the smoothed position.
+- Content loaded lazily (tabs, async code highlighting, images) changed page height after the
+  triggers measured it: pins and scrubs started at the wrong place. A debounced `ResizeObserver` on
+  the content container calling `ScrollTrigger.refresh()` fixed it.
+- A per-frame "move 8.5% toward the target" follower ran visibly faster on a 120Hz screen. Use
+  `damp(current, target, λ, dt)` (`progress-mapping.md` §4).
 - CSS `animation-timeline` used without an `@supports` check. Firefox stable doesn't run it
   (2026-09), so the un-animated state must be the finished, readable one.
 - Mobile address bar resizes re-running every ScrollTrigger: `ScrollTrigger.config({ ignoreMobileResize: true })`.

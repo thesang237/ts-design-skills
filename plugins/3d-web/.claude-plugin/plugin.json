@@ -1,7 +1,7 @@
 {
   "name": "3d-web",
-  "version": "0.1.0",
-  "description": "3D on the web: scenes, lighting, materials and performance.",
+  "version": "0.2.0",
+  "description": "3D on the web with three.js / React Three Fiber in Next.js: setup, camera and lighting presets, materials and shaders, glTF compression, scroll- and pointer-driven 3D, blending 3D with page UI, device quality tiers, poster fallbacks, WebGPU upgrade path and GPU memory cleanup.",
   "author": {
     "name": "Sang"
   }

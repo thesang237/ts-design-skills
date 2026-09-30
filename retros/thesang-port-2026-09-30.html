@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Skill retro</title>
+<style>
+  :root {
+    --bg: #f6f5f2; --paper: #ffffff; --ink: #17181b; --dim: #5d6168; --faint: #8b9098; --line: #e4e2dc;
+    --corrected: #6a4dd8; --broke: #d0433a; --slow: #c7860e; --worked: #1f8a5b; --accent: #17181b;
+    --add: #e7f5ec; --add-ink: #145c3c; --del: #fbeaea; --del-ink: #8f2b24; --chip: #efeee9;
+    --radius: 14px; --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111214; --paper: #18191c; --ink: #eceae6; --dim: #a4a7ad; --faint: #767a82; --line: #2a2c30;
+      --corrected: #a28bff; --broke: #ff7a70; --slow: #f0b44c; --worked: #4fd197; --accent: #eceae6;
+      --add: #12301f; --add-ink: #8fe0b4; --del: #3a1714; --del-ink: #ffb1aa; --chip: #232428;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 56px 24px 120px; }
+  .eyebrow { font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
+  h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.02; letter-spacing: -.035em; margin: 14px 0 16px; font-weight: 650; }
+  h2 { font-size: 22px; letter-spacing: -.015em; margin: 0 0 16px; font-weight: 650; }
+  .lead { font-size: 18px; color: var(--dim); max-width: 64ch; margin: 0; }
+  section { margin-top: 64px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 36px; }
+  .stat { background: var(--paper); padding: 18px 20px; }
+  .stat b { display: block; font-size: 30px; letter-spacing: -.03em; font-weight: 650; }
+  .stat span { font-size: 12px; color: var(--faint); }
+  .kinds { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+  .kind { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; border-top: 3px solid var(--c); }
+  .kind h3 { margin: 0 0 10px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--c); }
+  .kind ul { margin: 0; padding-left: 18px; color: var(--ink); }
+  .kind li { margin: 6px 0; font-size: 14px; }
+  .kind .empty { color: var(--faint); font-size: 14px; }
+  .toolbar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 0; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); }
+  .filter { font: inherit; font-size: 13px; border: 1px solid var(--line); background: var(--paper); color: var(--dim); border-radius: 999px; padding: 6px 12px; cursor: pointer; transition: background .16s var(--ease), color .16s var(--ease), border-color .16s var(--ease); }
+  .filter[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .cards { display: grid; gap: 14px; }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; transition: border-color .16s var(--ease), box-shadow .24s var(--ease); }
+  .card.is-picked { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .card-head { display: flex; gap: 14px; align-items: flex-start; }
+  .pick { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--accent); flex: none; cursor: pointer; }
+  .card h4 { margin: 0; font-size: 17px; letter-spacing: -.01em; font-weight: 620; }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip { font: 500 11.5px/1 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--chip); color: var(--dim); padding: 5px 8px; border-radius: 6px; }
+  .chip.id { background: var(--accent); color: var(--bg); }
+  .chip.ev { cursor: help; }
+  .why { margin: 14px 0 12px; color: var(--dim); }
+  .path { font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--faint); word-break: break-all; }
+  .diff { display: grid; gap: 6px; margin-top: 10px; }
+  .diff pre { margin: 0; padding: 10px 12px; border-radius: 8px; white-space: pre-wrap; word-break: break-word; font: 12.5px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .del { background: var(--del); color: var(--del-ink); }
+  .add { background: var(--add); color: var(--add-ink); }
+  .opts { margin: 12px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+  .opts li { border: 1px dashed var(--line); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
+  .opts li.rec { border-style: solid; border-color: var(--corrected); }
+  .ev-list { display: grid; gap: 8px; }
+  .ev-item { display: grid; grid-template-columns: 56px 1fr; gap: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 14px; }
+  .ev-item .src { font-size: 12px; color: var(--faint); }
+  .watch li { color: var(--dim); margin: 6px 0; }
+  .approve { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; gap: 10px; align-items: center; background: var(--accent); color: var(--bg); padding: 10px 12px 10px 18px; border-radius: 999px; box-shadow: 0 10px 40px rgba(0,0,0,.25); font-size: 14px; max-width: calc(100vw - 32px); }
+  .approve[hidden] { display: none; }
+  .newtag { font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--add-ink); background: var(--add); padding: 5px 8px; border-radius: 6px; justify-self: start; }
+  .approve button { font: inherit; font-size: 13px; border: 0; border-radius: 999px; padding: 7px 14px; background: var(--bg); color: var(--ink); cursor: pointer; }
+  .approve code { font: 12.5px ui-monospace, SFMono-Regular, Menlo, monospace; opacity: .9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  @media (max-width: 640px) { .wrap { padding-top: 36px; } .approve { width: calc(100vw - 32px); justify-content: space-between; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main class="wrap" id="app" aria-live="polite"></main>
+<div class="approve" id="approve" hidden>
+  <span>Reply in chat with:</span><code id="approve-text"></code><button type="button" id="copy">Copy</button>
+</div>
+
+<!-- The retro fills ONLY this block (see references/proposals.md). -->
+<script type="application/json" id="retro-data">
+{
+ "project": "Igloo guide + skill-writing session",
+ "date": "2026-09-30",
+ "summary": "Built a 13-chapter learn page with 25+ live demos, then wrote and saved four skills (skill-retro, create-learn-page, web-motion 0.3, 3d-web 0.2) with two demos. Headline lesson: the new skills are well covered, but the repo's own README went stale, a few 'verified' claims outran the last edits, and the measurement know-how landed in the wrong skills because quality-check is still empty.",
+ "stats": [
+  {
+   "label": "Corrections",
+   "value": 3
+  },
+  {
+   "label": "Breaks",
+   "value": 6
+  },
+  {
+   "label": "Slow spots",
+   "value": 3
+  },
+  {
+   "label": "Worth keeping",
+   "value": 4
+  },
+  {
+   "label": "Proposals",
+   "value": 6
+  }
+ ],
+ "evidence": [
+  {
+   "id": "E1",
+   "kind": "corrected",
+   "source": "conversation · taste questions",
+   "text": "Immersive-site mode, and special effects only when the request names them — you rewrote my 'adopt everywhere' framing. (Already saved in web-motion.)"
+  },
+  {
+   "id": "E2",
+   "kind": "corrected",
+   "source": "conversation · taste questions",
+   "text": "Learn pages default to the chapter guide; WebGL first, WebGPU as upgrade; lighter 3D then poster. (Already saved.)"
+  },
+  {
+   "id": "E3",
+   "kind": "corrected",
+   "source": "conversation · rename",
+   "text": "You renamed the folder to ts-design-skills and the GitHub repo; my memory and drafts still used the old name until the rename."
+  },
+  {
+   "id": "E4",
+   "kind": "broke",
+   "source": "conversation · README",
+   "text": "README.md still says '4 plugins', lists 4 folders and says the SKILL.md files are 'placeholders with a TODO' — false now that 4 skills are written and 2 added. The health script didn't catch it."
+  },
+  {
+   "id": "E5",
+   "kind": "broke",
+   "source": "conversation · 3d demo",
+   "text": "The demo README says 'verified … phone size with reduced motion', but two last tweaks (views count, panel collapsed on phones) were only type-checked; the run after them was cancelled."
+  },
+  {
+   "id": "E6",
+   "kind": "broke",
+   "source": "conversation · 3d demo test",
+   "text": "A test clicked 'text=Restore', which matched other text, so 'restore did nothing' looked like a real bug; the exact-text selector showed it worked."
+  },
+  {
+   "id": "E7",
+   "kind": "broke",
+   "source": "conversation · saving",
+   "text": "File-edit and shell permission checks failed repeatedly (service errors), blocking saves; one command was rejected by you."
+  },
+  {
+   "id": "E8",
+   "kind": "broke",
+   "source": "conversation · drafts",
+   "text": "Drafts were written with the old folder name; a rename between drafting and saving needed a bulk text replace and a folder rename in the scratchpad."
+  },
+  {
+   "id": "E9",
+   "kind": "broke",
+   "source": "conversation · first test run",
+   "text": "Scripts importing playwright/vite from the scratchpad failed until node_modules was linked; NODE_PATH is ignored by ES modules."
+  },
+  {
+   "id": "E10",
+   "kind": "slow",
+   "source": "conversation · verification",
+   "text": "Browser pane hidden, so screenshots failed; used DOM checks and a headless browser on the real GPU instead."
+  },
+  {
+   "id": "E11",
+   "kind": "slow",
+   "source": "conversation · research",
+   "text": "Several doc pages returned 404 or huge output; needed search + saved-output reads."
+  },
+  {
+   "id": "E12",
+   "kind": "slow",
+   "source": "conversation · drafts",
+   "text": "Two rounds of small fixes to the demo (canvas corners, clear colour, context restore) each needed a rebuild and re-run."
+  },
+  {
+   "id": "E13",
+   "kind": "worked",
+   "source": "conversation · measurement",
+   "text": "Headless Chromium on the real GPU with a draw-call counter gave real numbers (60fps, 16–28 draw calls, flat memory) instead of impressions."
+  },
+  {
+   "id": "E14",
+   "kind": "worked",
+   "source": "conversation · taste sessions",
+   "text": "Batching taste questions with a recommended option, and showing a summary before saving, matched how you work."
+  },
+  {
+   "id": "E15",
+   "kind": "worked",
+   "source": "conversation · skill-retro",
+   "text": "The health script found 9 real problems in the folder (3 placeholder skills, missing dates) in one run."
+  },
+  {
+   "id": "E16",
+   "kind": "worked",
+   "source": "conversation · demo tests",
+   "text": "Testing the demo end to end caught 3 real bugs (whole-page clear colour, restore after crash, removed shadow type)."
+  }
+ ],
+ "findings": {
+  "corrected": [
+   "Immersive mode and opt-in effects by keyword (E1)",
+   "Chapter-guide default; WebGL first; poster fallback (E2)",
+   "Repo and folder renamed; notes and drafts followed late (E3)"
+  ],
+  "broke": [
+   "README stale after the skills were written (E4)",
+   "A 'verified' note outran the last edits (E5)",
+   "Ambiguous click selector looked like an app bug (E6)",
+   "Permission-check outages blocked saves (E7)",
+   "Drafts held the old folder name after the rename (E8)",
+   "ES modules ignore NODE_PATH (E9)"
+  ],
+  "slow": [
+   "Hidden browser pane (E10)",
+   "404s and oversized doc fetches (E11)",
+   "Demo fixes needed rebuild + rerun each time (E12)"
+  ],
+  "worked": [
+   "Real-GPU headless measurement (E13)",
+   "Batched taste questions + summary before saving (E14)",
+   "Health script on the whole folder (E15)",
+   "End-to-end demo test caught real bugs (E16)"
+  ]
+ },
+ "proposals": [
+  {
+   "id": "R1",
+   "kind": "checklist",
+   "size": "S",
+   "target": "README.md",
+   "section": "How it's organized",
+   "title": "Fix the stale README",
+   "why": "It still says 4 plugins and 'placeholders with a TODO', but 6 skills exist and 4 are written.",
+   "before": "lists the 4 plugins … the four SKILL.md files … placeholders with a TODO",
+   "after": "lists all plugins (6 written + ui-craft and quality-check still to write) and says which SKILL.md files are still placeholders.",
+   "evidence": [
+    "E4"
+   ],
+   "options": null
+  },
+  {
+   "id": "R2",
+   "kind": "rule",
+   "size": "S",
+   "target": "plugins/skill-retro/skills/skill-retro/scripts/health.mjs",
+   "section": "checks",
+   "title": "Health check: README must match the catalogue",
+   "why": "The script missed the stale README, so it would have gone unnoticed again.",
+   "before": "(new)",
+   "after": "Warn when README.md doesn't mention every plugin in marketplace.json, or still says 'placeholder' while all skills are written.",
+   "evidence": [
+    "E4"
+   ],
+   "options": null
+  },
+  {
+   "id": "R3",
+   "kind": "pitfall",
+   "size": "S",
+   "target": "plugins/skill-retro/skills/skill-retro/references/pitfalls.md",
+   "section": "table",
+   "title": "Verified claims go stale after later edits",
+   "why": "A demo note said 'verified' although the last tweaks were never re-run.",
+   "before": "(new row)",
+   "after": "| 'Verified' written before the last edit | The note describes an older build | Re-run the check after the final edit and write the date and what was run |",
+   "evidence": [
+    "E5"
+   ],
+   "options": null
+  },
+  {
+   "id": "R4",
+   "kind": "pitfall",
+   "size": "S",
+   "target": "plugins/create-learn-page/skills/create-learn-page/references/verification.md",
+   "section": "4. Look at it",
+   "title": "Exact-match selectors in browser tests",
+   "why": "A loose text selector clicked the wrong element and looked like a broken feature.",
+   "before": "(new)",
+   "after": "Playwright text=Foo matches any element containing 'Foo'. Use button:text-is(\"Foo\") or roles. For scripts outside the project, symlink node_modules (ES modules ignore NODE_PATH).",
+   "evidence": [
+    "E6",
+    "E9"
+   ],
+   "options": null
+  },
+  {
+   "id": "R5",
+   "kind": "memory",
+   "size": "S",
+   "target": "memory/design-skills-repo.md",
+   "section": "body",
+   "title": "Update the repo memory",
+   "why": "The note lists old skills only and doesn't record the rename or the new skills.",
+   "before": "Skills: ui-craft, web-motion, page-transitions, 3d-web, quality-check.",
+   "after": "Folder and GitHub repo are ts-design-skills (renamed 2026-09-30). Skills: web-motion 0.3, page-transitions, 3d-web 0.2, create-learn-page, skill-retro written; ui-craft and quality-check still placeholders. Demos: web-motion, page-transitions, 3d-web, skill-retro.",
+   "evidence": [
+    "E3"
+   ],
+   "options": null
+  },
+  {
+   "id": "R6",
+   "kind": "new-skill",
+   "size": "L",
+   "target": "plugins/quality-check/skills/quality-check/SKILL.md",
+   "section": "whole skill",
+   "title": "Write quality-check from what this session measured",
+   "why": "Overflow scan, mount-every-tab check, real-GPU measurement and the 'did it actually run' rule were written into create-learn-page and 3d-web because quality-check is empty. That skill should own measuring; the others should point to it.",
+   "before": "TODO placeholder",
+   "after": "Draft a quality-check skill: review checklist, the overflow scan, mount-all-tabs, GPU measurement hook, 'prove the check ran', re-run after final edit. Then make create-learn-page and 3d-web point to it.",
+   "evidence": [
+    "E13",
+    "E15",
+    "E6",
+    "E5"
+   ],
+   "options": [
+    {
+     "label": "Draft it now, show me first",
+     "recommended": true,
+     "description": "Same process as the other skills, with a taste question or two"
+    },
+    {
+     "label": "Later, at the next project",
+     "description": "Keep as a watch item"
+    },
+    {
+     "label": "Skip",
+     "description": "Leave the checks where they are"
+    }
+   ]
+  }
+ ],
+ "watch": [
+  "Permission-check outages (E7) and browser pane hidden (E10) are environment issues; promote only if they recur.",
+  "Doc pages that 404 (E11): prefer searching, then fetching specific pages.",
+  "ui-craft is still a placeholder; no evidence yet this session, so no proposal."
+ ]
+}</script>
+
+<script>
+(() => {
+  const data = JSON.parse(document.getElementById('retro-data').textContent);
+  const app = document.getElementById('app');
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const KINDS = [['corrected', 'Corrected', 'What the designer changed'], ['broke', 'Broke', 'Errors and false “done”'], ['slow', 'Slow', 'Retries, waits, detours'], ['worked', 'Worked', 'Worth keeping']];
+  const evById = Object.fromEntries((data.evidence || []).map((e) => [e.id, e]));
+  const skillOf = (p) => (p.target || '').match(/plugins\/([^/]+)/)?.[1] || (p.kind === 'memory' ? 'memory' : p.kind === 'project-note' ? 'project notes' : 'other');
+  const skills = [...new Set((data.proposals || []).map(skillOf))];
+  const picked = new Set();
+  let filter = 'all';
+
+  const findings = KINDS.map(([k, label, hint]) => {
+    const items = data.findings?.[k] || [];
+    return `<div class="kind" style="--c: var(--${k})"><h3>${label}</h3>${items.length ? `<ul>${items.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>` : `<p class="empty">Nothing found. (${hint})</p>`}</div>`;
+  }).join('');
+
+  const card = (p) => {
+    const ev = (p.evidence || []).map((id) => `<span class="chip ev" title="${esc(evById[id]?.text || '')}">${esc(id)}</span>`).join('');
+    const opts = Array.isArray(p.options) && p.options.length ? `<ul class="opts">${p.options.map((o) => `<li class="${o.recommended ? 'rec' : ''}">${esc(o.label)}${o.recommended ? ' · recommended' : ''}${o.description ? ` — <span class="path">${esc(o.description)}</span>` : ''}</li>`).join('')}</ul>` : '';
+    const isNew = !p.before || /^\((new|not set)/i.test(p.before);
+    const diff = p.before || p.after ? `<div class="diff">${isNew ? `<span class="newtag">${esc(p.before || '(new)').replace(/[()]/g, '')}</span>` : `<pre class="del">${esc(p.before)}</pre>`}${p.after ? `<pre class="add">${esc(p.after)}</pre>` : ''}</div>` : '';
+    return `<article class="card" data-id="${esc(p.id)}" data-skill="${esc(skillOf(p))}">
+      <div class="card-head">
+        <input class="pick" type="checkbox" aria-label="Select ${esc(p.id)}" data-pick="${esc(p.id)}" />
+        <div style="min-width:0">
+          <h4>${esc(p.title)}</h4>
+          <div class="meta"><span class="chip id">${esc(p.id)}</span><span class="chip">${esc(p.kind)}</span><span class="chip">size ${esc(p.size || 'S')}</span><span class="chip">${esc(skillOf(p))}</span>${ev}</div>
+        </div>
+      </div>
+      <p class="why">${esc(p.why)}</p>
+      <div class="path">${esc(p.target || '')}${p.section ? ' → ' + esc(p.section) : ''}</div>
+      ${diff}${opts}
+    </article>`;
+  };
+
+  const render = () => {
+    const list = (data.proposals || []).filter((p) => filter === 'all' || skillOf(p) === filter);
+    app.innerHTML = `
+      <div class="eyebrow">Skill retro · ${esc(data.date)}</div>
+      <h1>${esc(data.project)}</h1>
+      <p class="lead">${esc(data.summary)}</p>
+      ${data.stats?.length ? `<div class="stats">${data.stats.map((s) => `<div class="stat"><b>${esc(s.value)}</b><span>${esc(s.label)}</span></div>`).join('')}</div>` : ''}
+      <section><h2>What happened</h2><div class="kinds">${findings}</div></section>
+      <section>
+        <h2>Proposed changes <span class="path">(${(data.proposals || []).length})</span></h2>
+        <div class="toolbar" role="toolbar" aria-label="Filter by skill">
+          ${['all', ...skills].map((s) => `<button class="filter" type="button" aria-pressed="${filter === s}" data-filter="${esc(s)}">${esc(s)}</button>`).join('')}
+        </div>
+        <div class="cards">${list.map(card).join('') || '<p class="empty">No proposals.</p>'}</div>
+      </section>
+      ${data.watch?.length ? `<section class="watch"><h2>Watch (not promoted yet)</h2><ul>${data.watch.map((w) => `<li>${esc(w)}</li>`).join('')}</ul></section>` : ''}
+      <section><h2>Evidence</h2><div class="ev-list">${(data.evidence || []).map((e) => `<div class="ev-item"><span class="chip" style="align-self:start;background:var(--${esc(e.kind)});color:var(--bg)">${esc(e.id)}</span><div>${esc(e.text)}<div class="src">${esc(e.kind)} · ${esc(e.source)}</div></div></div>`).join('')}</div></section>`;
+    app.querySelectorAll('[data-pick]').forEach((el) => {
+      el.checked = picked.has(el.dataset.pick);
+      el.closest('.card').classList.toggle('is-picked', el.checked);
+    });
+  };
+
+  const sync = () => {
+    const bar = document.getElementById('approve');
+    const ids = (data.proposals || []).map((p) => p.id).filter((id) => picked.has(id));
+    bar.hidden = !ids.length;
+    document.getElementById('approve-text').textContent = `Apply ${ids.join(', ')}`;
+  };
+
+  app.addEventListener('change', (e) => {
+    const id = e.target.dataset?.pick;
+    if (!id) return;
+    e.target.checked ? picked.add(id) : picked.delete(id);
+    e.target.closest('.card').classList.toggle('is-picked', e.target.checked);
+    sync();
+  });
+  app.addEventListener('click', (e) => {
+    const f = e.target.dataset?.filter;
+    if (!f) return;
+    filter = f;
+    render();
+  });
+  document.getElementById('copy').addEventListener('click', async (e) => {
+    try { await navigator.clipboard.writeText(document.getElementById('approve-text').textContent); e.target.textContent = 'Copied'; setTimeout(() => (e.target.textContent = 'Copy'), 1400); } catch { /* clipboard blocked: select the text instead */ }
+  });
+  document.title = `Retro · ${data.project}`;
+  render();
+})();
+</script>
+</body>
+</html>

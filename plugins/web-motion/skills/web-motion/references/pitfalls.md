@@ -82,3 +82,17 @@ normal, reduced motion, and phone with 4x CPU slowdown) and by building the demo
 - A hover grid caused horizontal scrolling on phones. Check `scrollWidth <= innerWidth` at 390px wide.
 - iOS doesn't show `:active` without a touch listener.
 - Motion's `dragSnapToOrigin` returns with its own inertia physics, not the house spring.
+
+## Found while rebuilding a scroll-scene page (2026-10-01)
+
+- **CSS and GSAP both owned one transform.** A stylesheet `translate3d(0, 10%, 0)` plus GSAP `yPercent: 10` put an overlay panel 20% low. Set start states in GSAP (`gsap.set` / `fromTo`) or in CSS, never both on one property.
+- **GSAP read a CSS `translateX(-150%)` as pixels.** The first hover jumped. Park elements with `gsap.set(el, { xPercent: -150 })`.
+- **`clearProps: 'all'` wiped React's inline styles** (a backdrop colour). Clear only what you animate: `clearProps: 'transform,opacity'`.
+- **`fromTo()` hovers snap on quick re-entry.** Use `.to()` with `overwrite: true`.
+- **`gsap.context(() => …)` callbacks that return a tween or timeline** (including `setTimeout(() => play(), …)`) trip the lint rule for promise-returning callbacks (tweens are thenable). Use block bodies.
+- **Sticky stopped sticking** because an ancestor had `overflow: hidden`. Use `overflow: clip`.
+- **A custom curve on a later keyframe did nothing** when porting a Webflow-style interaction: the engine used a key's curve only on the track's *first* key. Keep scrubbed tracks linear.
+- **A smoothing factor applied "per frame"** made the same scene faster on a 120Hz screen. Raise it to the power of elapsed 60Hz frames.
+- **Scrubbed Lottie container collapsed to 0 height** until its parent was a stretched flex column / aspect-ratio box (the SVG's `height: 100%` had nothing to resolve against).
+- **ScrollTrigger inside a demo's own scroll box** needs `scroller: box`; and the box needs `data-lenis-prevent` when a page-level smooth scroller is running.
+- **A grid cell with a 640px child kept the cell 640px wide on a phone** until `min-width: 0` was added.

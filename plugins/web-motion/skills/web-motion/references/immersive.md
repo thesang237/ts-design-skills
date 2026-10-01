@@ -39,3 +39,15 @@ CustomEase.create('ease.inOutStrong', path(EASE_IMMERSIVE.inOut))
 ```
 Scope the mode to the immersive part of the site with a class, so a shared component used on a normal
 page keeps the house feel.
+
+## Porting a site that uses CSS-named curves (editorial and portfolio sites)
+
+Studied editorial pages tend to use three named curves. They map onto the presets; don't add new ones:
+
+| Named in the source | Bezier | Use instead |
+| --- | --- | --- |
+| in-out-cubic | `(0.645, 0.045, 0.355, 1)` | `ease-in-out` `(0.65, 0, 0.35, 1)`: the same shape |
+| in-out-quart | `(0.77, 0, 0.175, 1)` | immersive `ease-in-out-strong` `(0.76, 0, 0.24, 1)`: sheets, overlays and page wipes |
+| out-cubic | `(0.215, 0.61, 0.355, 1)` | house `ease-out` (snappier and calmer at the end); keep out-cubic only to match an existing recording |
+
+Showcase reveal timings seen in the study: hero lines rising from a mask 1.0s, about lines 0.9s, overlays 1.0 to 1.4s: all inside the immersive 900 to 1000ms register. Scrubbed stages stay linear (`scroll-stage.md`).

@@ -139,6 +139,11 @@ Without support (Firefox stable today) the content is simply shown, so the un-an
 be the readable one. Named ranges: `entry` (coming in at the bottom), `contain`/`cover` (on screen),
 `exit` (leaving at the top).
 
+## Many layers, a pinned stage, a Lottie
+
+For a stage with several independent layers (photos rising, a slide deck, a counter) or a long scrubbed story, use keyframe **tracks** on
+one progress instead of one enter/hold/exit timeline: `scroll-stage.md`. For images arriving or covering each other: `image-motion.md`.
+
 ## Reduced motion
 
 No scrubbing, no pinning: switch to the in-flow layout, show the content, one short fade the first

@@ -1,7 +1,7 @@
 {
   "name": "ui-craft",
-  "version": "0.1.0",
-  "description": "Interface design craft: layout, spacing, typography, color and polish.",
+  "version": "0.2.0",
+  "description": "Interface design craft: spacing and type scales, OKLCH colour tokens and contrast, hairline-first radius and depth, grid, container queries, the full component state matrix (hover, focus, disabled, loading, empty, error), wired forms, product vs showcase dialects, polish details and a never-do list.",
   "author": {
     "name": "Sang"
   }

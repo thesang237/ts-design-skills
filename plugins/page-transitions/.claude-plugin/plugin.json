@@ -1,7 +1,7 @@
 {
   "name": "page-transitions",
-  "version": "0.1.0",
-  "description": "Page loaders and page transitions for React / Next.js: native View Transitions, GSAP and Motion, with accessibility, scroll and performance rules.",
+  "version": "0.2.0",
+  "description": "Page loaders and page transitions for React / Next.js: native View Transitions, GSAP and Motion, hand-over loaders, overlays (gallery, menu, wipes), with accessibility, scroll and performance rules.",
   "author": {
     "name": "Sang"
   }

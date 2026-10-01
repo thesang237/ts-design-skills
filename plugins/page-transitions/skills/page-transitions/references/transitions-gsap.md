@@ -147,3 +147,31 @@ Rules for GSAP transitions:
 - Text splitting (SplitText): split after fonts are ready; revert on unmount; use its `aria` option so screen readers still read the original text.
 
 *Not run in the demo:* the Flip, ScrollTrigger and SplitText notes are standard usage, listed for orientation. Test them in the project before relying on them.
+
+## Overlay choreography: gallery, menu, one-direction wipe
+
+Overlays (a gallery, a phone menu, a page wipe) are **lists of tweens with exact start times**, not one animation played forward and back.
+Write them as data (target, property, from, to, start, duration, curve), build the timeline from the list, and keep the list as the single source of truth.
+Numbers from a studied page (house exit rule applies: see below):
+
+| Sequence | Tweens (start → duration, curve) |
+| --- | --- |
+| **Gallery opens** | backdrop opacity 0 → 1 (0 → 1.2s, in-out strong); photo panel `yPercent` 10 → 0 (0.3 → 1.0s, in-out); content opacity 0 → 1 (0.4 → 1.4s, ease-out) |
+| **Gallery closes** | content 1 → 0 (0 → 0.4s); backdrop 1 → 0 (0 → 1.2s); panel 0 → 10% (0.7 → 1.0s); `display: none` at 1.0s |
+| **Page wipe** | black sheet `yPercent` 100 → 0 (0 → 0.7s, in-out strong); route resets while covered; hold 0.15s; sheet 0 → −100 (0.85 → 0.9s, in-out): it **enters from the bottom and leaves through the top**, never back down |
+| **Phone menu opens** | dark sheet `yPercent` −100 → 0 (0 → 0.5s); three big words `yPercent` 120 → 0 from masks (0 / 0.1 / 0.2 → 1.0s, in-out); “Close” 0.3s at 0.3, description at 0.5, credit at 0.7 |
+| **Phone menu closes** | words back (reverse order, 0.1s apart, 1.0s); description and credit out (0.3s); sheet −100% (0.4 → 0.5s, ease-in); `display: none` at 1.0s |
+
+```ts
+const open = gsap.timeline()
+  .fromTo(blur,  { opacity: 0 },               { opacity: 1, duration: 1.2, ease: 'ease.inOutStrong' }, 0)
+  .fromTo(panel, { yPercent: 10, y: 0 },       { yPercent: 0, duration: 1.0, ease: 'ease.inOut' }, 0.3)
+  .fromTo(popup, { opacity: 0 },               { opacity: 1, duration: 1.4, ease: 'ease.out' }, 0.4)
+lenis?.stop()                                   // the page behind must not scroll while it is open
+```
+- **Closing is not the opening played backwards.** Text leaves first and fast; the big surface waits and leaves last; `display: none` is set at the end. In house style, scale the whole close by `exit-ratio` (0.6) and keep the order. The studied page's close was as long as its open, which suits a showcase but not product UI.
+- **Blur the backdrop with a static `backdrop-filter` and tween its `opacity`.** Never tween the blur amount (`filter` on a large area is expensive).
+- **GSAP owns both ends:** set the start state in the timeline (`yPercent: 10, y: 0`), not in the stylesheet, or a CSS `translate` and the tween add up.
+- **Overlays are dialogs:** `role="dialog" aria-modal="true"` and a label; move focus in on open (the close button) and **back to the opener on close**; **Escape closes**; stop smooth scrolling and page scroll while open (`lenis.stop()` / `start()`, or `overflow: hidden` on the page, with `overscroll-behavior: contain` inside); `inert` on the page behind if you can.
+- **Interrupt safely:** `timeline.kill()` before building the other direction; guard against a second click during a wipe.
+- Reduced motion: no travel; show and hide the overlay with a short fade.

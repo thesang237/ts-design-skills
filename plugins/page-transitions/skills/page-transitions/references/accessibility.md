@@ -52,6 +52,13 @@ export function RouteFocus() {
 - During a curtain the panel blocks pointer input; it must not trap keyboard focus or hide content from screen readers for longer than the transition (`aria-hidden` on the panel, removed with it).
 - Tested in the demo: Enter on a nav link → focus on the new `<h1>` (Chromium, Firefox, WebKit); next Tab continues after the heading.
 
+## Overlays opened over the page (gallery, menu)
+
+- `role="dialog"`, `aria-modal="true"`, an accessible name; focus moves in on open and **returns to the opener** on close; Escape closes; Tab stays inside while it is open.
+- The page behind does not scroll (stop the smooth scroller; `overscroll-behavior: contain` on the overlay's scroller) and is `inert` if possible.
+- A “Close” control is a real `<button>`, first in the overlay, with a visible focus ring.
+- Reduced motion: no travel or blur animation: a short fade for the whole overlay.
+
 ## Screen readers
 
 - Next.js's App Router includes a built-in **route announcer** (`next-route-announcer`) that reads the new `document.title` after each navigation. **A unique `<title>` on every page is the whole job.** Do not add another `aria-live` region for route changes (double announcements).

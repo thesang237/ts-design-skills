@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en" data-theme="light" data-density="default">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ui-craft demo: tokens, states, forms, dialects</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  /* ───────── demo page chrome (uses only the tokens) ───────── */
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 var(--space-5); }
+  header.top { position: sticky; top: 0; z-index: var(--z-header); background: color-mix(in oklch, var(--bg) 92%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+  header.top .wrap { display: flex; align-items: center; gap: var(--space-5); min-height: 56px; flex-wrap: wrap; }
+  header.top nav { display: flex; gap: var(--space-1); flex: 1; overflow-x: auto; }
+  header.top nav a { padding: var(--space-2) var(--space-3); color: var(--ink-dim); text-decoration: none; font-size: var(--text-sm); border-radius: var(--radius-2); white-space: nowrap; }
+  header.top nav a:hover { color: var(--ink); background: var(--bg-subtle); }
+  .switches { display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap; }
+  .seg { display: inline-flex; border: 1px solid var(--border-strong); border-radius: var(--radius-2); overflow: hidden; }
+  .seg button { min-height: 32px; min-width: 32px; padding: 0 var(--space-3); background: transparent; border: 0; color: var(--ink-dim); font: 500 var(--text-sm)/1 var(--font-sans); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  .seg button:focus-visible { outline-offset: -4px; }
+
+  section.block { padding: var(--space-8) 0 var(--space-6); border-top: 1px solid var(--ink); }
+  section.block:first-of-type { border-top: 0; }
+  .eyebrow { font: 500 var(--text-xs)/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: var(--space-3); }
+  h1 { font-size: clamp(2.25rem, 1.2rem + 4vw, 3.5rem); line-height: 1.05; letter-spacing: -0.03em; }
+  h2 { font-size: var(--text-2xl); line-height: 1.2; letter-spacing: -0.02em; margin-bottom: var(--space-3); }
+  h3 { font-size: var(--text-lg); line-height: 1.3; margin-bottom: var(--space-2); }
+  .lede { color: var(--ink-dim); max-width: 62ch; margin-bottom: var(--space-6); }
+  .grid2 { display: grid; gap: var(--space-5); grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-3); padding: var(--space-5); }
+  .note { color: var(--ink-faint); font-size: var(--text-sm); margin-top: var(--space-3); max-width: 70ch; }
+  code, .mono { font-family: var(--font-mono); font-size: .9em; }
+  .scroll-x { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-3); background: var(--panel); }
+
+  /* ───────── tokens: spacing ruler + type + roles ───────── */
+  .ruler { display: grid; gap: var(--space-2); }
+  .ruler div { display: grid; grid-template-columns: 140px 1fr; align-items: center; gap: var(--space-3); font: var(--text-sm)/1 var(--font-mono); color: var(--ink-dim); }
+  .ruler i { display: block; height: 12px; background: var(--ink); }
+  .type-row { display: grid; grid-template-columns: 110px 1fr; gap: var(--space-4); align-items: baseline; padding: var(--space-2) 0; border-bottom: 1px solid var(--border); }
+  .type-row small { font: var(--text-xs)/1.2 var(--font-mono); color: var(--ink-faint); }
+  .swatches { display: grid; gap: var(--space-2); grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .sw { border: 1px solid var(--border); border-radius: var(--radius-2); overflow: hidden; font: var(--text-xs)/1.3 var(--font-mono); background: var(--panel); }
+  .sw b { display: block; height: 40px; }
+  .sw span { display: block; padding: var(--space-2); color: var(--ink-dim); }
+  table.contrast { width: 100%; border-collapse: collapse; min-width: 640px; font-size: var(--text-sm); }
+  table.contrast th, table.contrast td { padding: var(--space-3) var(--space-4); text-align: left; border-bottom: 1px solid var(--border); }
+  table.contrast th { font: 500 var(--text-xs)/1 var(--font-mono); text-transform: uppercase; letter-spacing: .1em; color: var(--ink-faint); }
+  .chip { display: inline-flex; align-items: center; gap: var(--space-1); padding: 2px var(--space-2); border-radius: var(--radius-full); font: 500 var(--text-xs)/1.4 var(--font-mono); }
+  .chip.pass { background: var(--success-bg); color: var(--success); border: 1px solid color-mix(in oklch, var(--success) 40%, transparent); }
+  .chip.fail { background: var(--danger-bg); color: var(--danger); border: 1px solid color-mix(in oklch, var(--danger) 40%, transparent); }
+  .pair { display: inline-flex; width: 44px; height: 24px; border: 1px solid var(--border); border-radius: var(--radius-1); align-items: center; justify-content: center; font: 600 13px/1 var(--font-sans); }
+
+  /* ───────── components (every state from tokens) ───────── */
+  .btn { --bgc: var(--ink); --fgc: var(--bg); --bdc: transparent; --hov: color-mix(in oklch, var(--ink) 84%, var(--bg)); --act: color-mix(in oklch, var(--ink) 70%, var(--bg));
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--row); min-width: 40px; padding: 0 var(--space-4);
+    border: 1px solid var(--bdc); border-radius: var(--radius-2); background: var(--bgc); color: var(--fgc); font: 500 var(--text-sm)/1 var(--font-sans); cursor: pointer;
+    transition: background-color var(--dur-hover) var(--ease-out), transform var(--dur-press) var(--ease-out); }
+  .btn.secondary { --bgc: transparent; --fgc: var(--ink); --bdc: var(--border-strong); --hov: var(--bg-subtle); --act: var(--border); }
+  .btn.accent { --bgc: var(--accent); --fgc: var(--on-accent); --hov: color-mix(in oklch, var(--accent) 88%, var(--ink)); --act: color-mix(in oklch, var(--accent) 76%, var(--ink)); }
+  @media (hover: hover) and (pointer: fine) { .btn:hover:not(:disabled):not([aria-busy="true"]) { background: var(--hov); } }
+  .btn.is-hover { background: var(--hov); }
+  .btn:active:not(:disabled), .btn.is-active { background: var(--act); transform: scale(0.97); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn[aria-busy="true"] { pointer-events: none; }
+  .spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .link { color: var(--ink); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: var(--border-strong); transition: text-decoration-color var(--dur-hover); }
+  @media (hover: hover) and (pointer: fine) { .link:hover { text-decoration-color: var(--ink); } }
+  .link.is-hover { text-decoration-color: var(--ink); }
+  .link.is-active { color: var(--accent-ink); }
+  .link[aria-disabled="true"] { color: var(--ink-faint); text-decoration: none; cursor: not-allowed; }
+
+  .field { display: grid; gap: var(--space-1); }
+  .field label { font: 500 var(--text-sm)/1.3 var(--font-sans); }
+  .field .hint { color: var(--ink-faint); font-size: var(--text-sm); }
+  .field .err { display: none; align-items: flex-start; gap: var(--space-2); color: var(--danger); font-size: var(--text-sm); min-height: 20px; }
+  .field.has-error .err { display: flex; }
+  .input { width: 100%; min-height: var(--row); padding: 0 var(--space-3); background: var(--raised); color: var(--ink); border: 1px solid var(--border-strong); border-radius: var(--radius-2); font: 400 var(--text-base)/1.2 var(--font-sans); transition: border-color var(--dur-hover); }
+  textarea.input { padding: var(--space-3); line-height: 1.5; resize: vertical; field-sizing: content; min-height: 88px; max-height: 240px; }
+  .input::placeholder { color: var(--ink-faint); }
+  @media (hover: hover) and (pointer: fine) { .input:hover:not(:disabled) { border-color: var(--ink-dim); } }
+  .input.is-hover { border-color: var(--ink-dim); }
+  .input:disabled { opacity: .5; cursor: not-allowed; background: var(--bg-subtle); }
+  .input:user-invalid, .input[aria-invalid="true"], .input.is-error { border-color: var(--danger); box-shadow: inset 0 0 0 1px var(--danger); }
+  .input.is-focus, .input:focus-visible { border-color: var(--ink); }
+
+  .check { display: inline-flex; align-items: center; gap: var(--space-3); min-height: 24px; cursor: pointer; font-size: var(--text-sm); }
+  .check input { appearance: none; margin: 0; width: 20px; height: 20px; border: 1px solid var(--border-strong); border-radius: var(--radius-1); background: var(--raised); display: grid; place-content: center; cursor: inherit; }
+  .check input::after { content: ""; width: 10px; height: 6px; border-left: 2px solid var(--bg); border-bottom: 2px solid var(--bg); transform: rotate(-45deg) translate(1px,-1px); opacity: 0; }
+  .check input:checked { background: var(--ink); border-color: var(--ink); }
+  .check input:checked::after { opacity: 1; }
+  .check input:disabled { opacity: .45; cursor: not-allowed; }
+  .check input.is-error { border-color: var(--danger); box-shadow: inset 0 0 0 1px var(--danger); }
+  @media (hover: hover) and (pointer: fine) { .check input:hover:not(:disabled):not(:checked) { border-color: var(--ink); } }
+  .check input.is-hover:not(:checked) { border-color: var(--ink); }
+
+  .switch { position: relative; width: 40px; height: 24px; border-radius: var(--radius-full); border: 1px solid var(--border-strong); background: var(--bg-subtle); cursor: pointer; padding: 0; transition: background-color var(--dur-hover); }
+  .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--ink-dim); transition: transform var(--dur-hover) var(--ease-out), background-color var(--dur-hover); }
+  .switch[aria-checked="true"] { background: var(--ink); border-color: var(--ink); }
+  .switch[aria-checked="true"]::after { transform: translateX(16px); background: var(--bg); }
+  .switch:disabled { opacity: .45; cursor: not-allowed; }
+  .switch.is-hover { background: var(--border); }
+
+  .tab { min-height: var(--row); padding: 0 var(--space-4); background: transparent; border: 0; border-bottom: 2px solid transparent; color: var(--ink-dim); font: 500 var(--text-sm)/1 var(--font-sans); cursor: pointer; }
+  .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+  @media (hover: hover) and (pointer: fine) { .tab:hover:not(:disabled) { color: var(--ink); background: var(--bg-subtle); } }
+  .tab.is-hover { color: var(--ink); background: var(--bg-subtle); }
+  .tab:disabled { opacity: .45; cursor: not-allowed; }
+  .tab.is-active { background: var(--border); }
+
+  .card { display: block; text-align: left; width: 100%; padding: var(--space-4); background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-3); color: inherit; cursor: pointer; font: inherit; transition: background-color var(--dur-hover), border-color var(--dur-hover); }
+  .card b { display: block; font-weight: 500; margin-bottom: var(--space-1); }
+  .card span { color: var(--ink-dim); font-size: var(--text-sm); }
+  @media (hover: hover) and (pointer: fine) { .card:hover:not(:disabled) { border-color: var(--border-strong); background: var(--raised); } }
+  .card.is-hover { border-color: var(--border-strong); background: var(--raised); }
+  .card.is-active { background: var(--bg-subtle); transform: scale(0.99); }
+  .card:disabled { opacity: .5; cursor: not-allowed; }
+  .skel { background: linear-gradient(90deg, var(--bg-subtle) 0%, var(--border) 50%, var(--bg-subtle) 100%); background-size: 200% 100%; border-radius: var(--radius-1); animation: shimmer 1.8s ease-in-out infinite; }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+
+  /* state matrix */
+  table.matrix { border-collapse: collapse; min-width: 900px; width: 100%; }
+  table.matrix th, table.matrix td { padding: var(--space-3) var(--space-3); border-bottom: 1px solid var(--border); vertical-align: middle; text-align: left; }
+  table.matrix thead th { font: 500 var(--text-xs)/1 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); position: sticky; top: 0; background: var(--panel); }
+  table.matrix tbody th { font: 500 var(--text-sm)/1.3 var(--font-sans); width: 150px; }
+  td.na { color: var(--ink-faint); font: var(--text-xs)/1 var(--font-mono); }
+
+  /* forms */
+  form.demo { display: grid; gap: var(--space-4); max-width: 460px; }
+  .errsum { display: none; border: 1px solid var(--danger); background: var(--danger-bg); border-radius: var(--radius-3); padding: var(--space-3) var(--space-4); font-size: var(--text-sm); }
+  .errsum.on { display: block; }
+  fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: var(--space-2); }
+  legend { font: 500 var(--text-sm)/1.3 var(--font-sans); padding: 0; margin-bottom: var(--space-2); }
+
+  /* empty / loading / error */
+  .state { text-align: center; padding: var(--space-7) var(--space-5); display: grid; gap: var(--space-3); justify-items: center; }
+  .state .ico { width: 40px; height: 40px; border-radius: var(--radius-full); border: 1px solid var(--border-strong); display: grid; place-items: center; font-weight: 600; color: var(--ink-dim); }
+  .state.err .ico { border-color: var(--danger); color: var(--danger); }
+  .state p { max-width: 36ch; color: var(--ink-dim); }
+
+  /* dialects */
+  .dialect { border: 1px solid var(--border); background: var(--panel); border-radius: var(--radius-3); overflow: hidden; display: flex; flex-direction: column; }
+  .dialect .tag { padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--border); font: 500 var(--text-xs)/1 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+  .prod { padding: var(--space-5); display: grid; gap: var(--space-4); }
+  .prod .row { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); padding: var(--space-3) 0; border-top: 1px solid var(--border); }
+  .prod .row:first-of-type { border-top: 0; }
+  .showcase { container-type: inline-size; background: var(--bg); flex: 1; }
+  .showcase .inner { font-size: 1cqw; padding: 0; }                  /* 1em = 1% of this box: the demo's version of 1em = 1vw */
+  .showcase .labels { display: flex; justify-content: space-between; padding: 1.4em .97em .5em; font-size: max(11px, .95em); }
+  .showcase .rule { height: 1px; background: var(--ink); margin: 0 .97em; }
+  .showcase .cols { display: flex; padding: 0 .97em; min-height: 34em; }
+  .showcase .cols .l { width: 32.8%; border-right: 1px solid var(--ink); display: flex; align-items: flex-end; padding-bottom: .97em; font-size: max(11px, .95em); }
+  .showcase .cols .r { width: 66.3%; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: .97em; }
+  .showcase h3 { font-size: 7em; line-height: .92; letter-spacing: -0.035em; margin: 0; }
+  .showcase .swap { color: var(--ink); text-decoration: none; position: relative; overflow: hidden; display: inline-block; font-size: max(12px, .95em); margin-top: 1.2em; align-self: flex-start; }
+  .showcase .swap i { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--ink); transition: transform .5s var(--ease-out); }
+  .showcase .swap i + i { transform: translateX(-140%); }
+  @media (hover: hover) { .showcase .swap:hover i { transform: translateX(140%); } .showcase .swap:hover i + i { transform: translateX(0); } }
+
+  /* don't / do */
+  .dd { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); }
+  .dd .pair2 { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--border); border-radius: var(--radius-3); overflow: hidden; background: var(--panel); }
+  .dd .side { padding: var(--space-4); display: grid; gap: var(--space-3); align-content: start; }
+  .dd .side + .side { border-left: 1px solid var(--border); }
+  .dd .lab { font: 600 var(--text-xs)/1 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; }
+  .dd .bad .lab { color: var(--danger); } .dd .good .lab { color: var(--success); }
+  .dd p.why { grid-column: 1 / -1; padding: var(--space-3) var(--space-4); border-top: 1px solid var(--border); color: var(--ink-dim); font-size: var(--text-sm); }
+  .nofocus:focus-visible { outline: none; box-shadow: none; }
+  @media (max-width: 560px) { .dd .pair2 { grid-template-columns: 1fr; } .dd .side + .side { border-left: 0; border-top: 1px solid var(--border); } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <strong style="font-weight:500">ui-craft</strong>
+    <nav aria-label="Sections">
+      <a href="#tokens">Tokens</a><a href="#contrast">Contrast</a><a href="#states">States</a><a href="#forms">Forms</a><a href="#empty">Empty · loading · error</a><a href="#dialects">Dialects</a><a href="#dont">Don’t / do</a>
+    </nav>
+    <div class="switches" role="group" aria-label="Demo settings">
+      <div class="seg" role="group" aria-label="Theme"><button type="button" data-set="theme" data-v="light" aria-pressed="true">Light</button><button type="button" data-set="theme" data-v="dark" aria-pressed="false">Dark</button></div>
+      <div class="seg" role="group" aria-label="Density"><button type="button" data-set="density" data-v="compact" aria-pressed="false">32</button><button type="button" data-set="density" data-v="default" aria-pressed="true">40</button><button type="button" data-set="density" data-v="comfortable" aria-pressed="false">48</button></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="block" id="intro" style="padding-top: var(--space-9)">
+    <div class="eyebrow">ts-design-skills · ui-craft</div>
+    <h1>A calm system, applied without exceptions.</h1>
+    <p class="lede" style="margin-top: var(--space-4)">Everything on this page reads from one tokens file: a 4px spacing scale, a short type scale, warm paper neutrals with one accent, hairline-first surfaces and a single double-ring focus style. Use the switches above to change theme and control height (density), press <kbd>Tab</kbd> to see the focus ring, and open the sections to check contrast, every component state, a properly wired form and the two dialects.</p>
+  </section>
+
+  <!-- ───────── tokens ───────── -->
+  <section class="block" id="tokens">
+    <div class="eyebrow">01 · tokens</div>
+    <h2>Spacing, type, colour roles, radius</h2>
+    <p class="lede">Only these steps exist. A value outside them is a bug, and in Tailwind a closed scale makes it impossible to write.</p>
+    <div class="grid2">
+      <div class="panel"><h3>Spacing: 4px base</h3><div class="ruler" id="ruler"></div></div>
+      <div class="panel"><h3>Type: roughly ×1.25</h3><div id="types"></div></div>
+    </div>
+    <div class="panel" style="margin-top: var(--space-5)">
+      <h3>Colour roles (not hues)</h3>
+      <div class="swatches" id="swatches"></div>
+      <p class="note">Components use only these names. One accent per view; semantic colours only for their meaning; the dark theme lifts surfaces instead of inverting them.</p>
+    </div>
+    <div class="panel" style="margin-top: var(--space-5)">
+      <h3>Radius and depth: hairline-first</h3>
+      <div style="display:flex; gap: var(--space-5); flex-wrap: wrap; align-items: end">
+        <div><div style="width:64px;height:64px;border:1px solid var(--border-strong);border-radius:var(--radius-1)"></div><div class="note mono">4 · chips</div></div>
+        <div><div style="width:64px;height:64px;border:1px solid var(--border-strong);border-radius:var(--radius-2)"></div><div class="note mono">6 · controls</div></div>
+        <div><div style="width:64px;height:64px;border:1px solid var(--border-strong);border-radius:var(--radius-3)"></div><div class="note mono">10 · cards</div></div>
+        <div><div style="width:64px;height:64px;border:1px solid var(--border-strong);border-radius:var(--radius-4)"></div><div class="note mono">16 · dialogs</div></div>
+        <div><div style="width:64px;height:64px;border:1px solid var(--border-strong);border-radius:var(--radius-full)"></div><div class="note mono">full · tags</div></div>
+        <div><div style="width:120px;height:64px;background:var(--raised);border:1px solid var(--border);border-radius:var(--radius-3);box-shadow:var(--shadow-float)"></div><div class="note mono">floating: border + one shadow</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────── contrast ───────── -->
+  <section class="block" id="contrast">
+    <div class="eyebrow">02 · contrast</div>
+    <h2>Live contrast checker</h2>
+    <p class="lede">Computed from the real token values in the current theme. Text needs 4.5:1; component boundaries, meaningful icons and focus rings need 3:1 (WCAG 2.2). Toggle the theme and watch the results change.</p>
+    <div class="scroll-x"><table class="contrast" id="contrastTable"><thead><tr><th>Pair</th><th>Sample</th><th>Ratio</th><th>Needs</th><th>Result</th></tr></thead><tbody></tbody></table></div>
+    <p class="note">The accent fill is not used as a boundary on its own: an accent button also carries ink text, which is what identifies it.</p>
+  </section>
+
+  <!-- ───────── states ───────── -->
+  <section class="block" id="states">
+    <div class="eyebrow">03 · states</div>
+    <h2>The state matrix</h2>
+    <p class="lede">Every interactive component, every state, designed once as tokens. The cells use forced-state classes so you can see them side by side; real hover, focus and press work on the first column too.</p>
+    <div class="scroll-x"><table class="matrix" id="matrix"></table></div>
+    <p class="note">Hover is gated by <code>@media (hover: hover) and (pointer: fine)</code>. Disabled keeps its shape at 45% and says no. Loading keeps the label and the width. Focus is the same double ring for all of them.</p>
+  </section>
+
+  <!-- ───────── forms ───────── -->
+  <section class="block" id="forms">
+    <div class="eyebrow">04 · forms</div>
+    <h2>A form that is wired, not painted</h2>
+    <p class="lede">Visible labels bound to inputs, hints, <code>aria-invalid</code> and <code>aria-describedby</code>, <code>:user-invalid</code> (errors appear only after interaction), a focus-moving error summary, a growing textarea, and no dead submit button.</p>
+    <div class="grid2">
+      <form class="demo panel" id="demoForm" novalidate>
+        <div class="errsum" id="errsum" role="alert" tabindex="-1"></div>
+        <div class="field" id="f-email"><label for="email">Email</label>
+          <input class="input" id="email" name="email" type="email" autocomplete="email" required aria-describedby="email-hint email-err">
+          <p class="hint" id="email-hint">We only use it to send the receipt.</p>
+          <p class="err" id="email-err"><span aria-hidden="true">⚠</span><span>Enter an email like name@example.com</span></p></div>
+        <div class="field" id="f-pw"><label for="pw">Password</label>
+          <div style="display:flex; gap: var(--space-2)"><input class="input" id="pw" name="pw" type="password" autocomplete="new-password" minlength="8" required aria-describedby="pw-hint pw-err"><button class="btn secondary" type="button" id="pwToggle" aria-pressed="false">Show</button></div>
+          <p class="hint" id="pw-hint">At least 8 characters.</p>
+          <p class="err" id="pw-err"><span aria-hidden="true">⚠</span><span>Use at least 8 characters, you typed <b id="pwLen">0</b>.</span></p></div>
+        <div class="field"><label for="note">Note <span style="color: var(--ink-faint); font-weight: 400">(optional)</span></label>
+          <textarea class="input" id="note" name="note" placeholder="Anything we should know? This box grows as you type."></textarea></div>
+        <fieldset><legend>How should we contact you?</legend>
+          <label class="check"><input type="checkbox" name="c" checked> Email</label>
+          <label class="check"><input type="checkbox" name="c"> Text message</label></fieldset>
+        <div style="display:flex; gap: var(--space-3); flex-wrap: wrap"><button class="btn" type="submit" id="submitBtn"><span id="submitLabel">Create account</span></button><button class="btn secondary" type="reset">Clear</button></div>
+        <p class="hint" id="status" role="status" aria-live="polite"></p>
+      </form>
+      <div class="panel">
+        <h3>What to look for</h3>
+        <ul style="margin:0; padding-left: var(--space-5); display:grid; gap: var(--space-3); color: var(--ink-dim)">
+          <li>Click a label: its input focuses. That is the binding doing its job.</li>
+          <li>Type half an email and Tab away; then try to submit empty. Errors come after interaction, say how to fix it and keep what you typed.</li>
+          <li>Submit with errors: focus moves to the summary, which lists each problem.</li>
+          <li>The submit button is never disabled for a hidden reason. While “saving” it keeps its width.</li>
+          <li>Tab: the double ring is visible on every control, on both themes.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────── empty, loading, error ───────── -->
+  <section class="block" id="empty">
+    <div class="eyebrow">05 · empty · loading · error</div>
+    <h2>The states people actually see</h2>
+    <div class="grid2" style="grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr))">
+      <div class="panel"><h3>Empty (first use)</h3><div class="state"><div class="ico" aria-hidden="true">+</div><strong style="font-weight:500">No projects yet</strong><p>Projects you create show up here.</p><button class="btn" type="button">Create a project</button></div></div>
+      <div class="panel"><h3>Empty (no results)</h3><div class="state"><div class="ico" aria-hidden="true">?</div><strong style="font-weight:500">Nothing for “linen”</strong><p>Try a different word, or clear the filters.</p><button class="btn secondary" type="button">Clear filters</button></div></div>
+      <div class="panel"><h3>Loading (skeleton, same shape)</h3><div aria-busy="true" aria-label="Loading projects" style="display:grid; gap: var(--space-3)">
+        <div style="display:grid; grid-template-columns: 40px 1fr; gap: var(--space-3); align-items:center"><div class="skel" style="height:40px"></div><div style="display:grid; gap:var(--space-2)"><div class="skel" style="height:12px; width:70%"></div><div class="skel" style="height:12px; width:45%"></div></div></div>
+        <div style="display:grid; grid-template-columns: 40px 1fr; gap: var(--space-3); align-items:center"><div class="skel" style="height:40px"></div><div style="display:grid; gap:var(--space-2)"><div class="skel" style="height:12px; width:60%"></div><div class="skel" style="height:12px; width:55%"></div></div></div>
+        <div style="display:grid; grid-template-columns: 40px 1fr; gap: var(--space-3); align-items:center"><div class="skel" style="height:40px"></div><div style="display:grid; gap:var(--space-2)"><div class="skel" style="height:12px; width:80%"></div><div class="skel" style="height:12px; width:35%"></div></div></div></div>
+        <p class="note">Static under reduced motion. Nothing moves when the content arrives.</p></div>
+      <div class="panel"><h3>Error (page level)</h3><div class="state err" role="alert"><div class="ico" aria-hidden="true">!</div><strong style="font-weight:500">We couldn’t load your projects</strong><p>Check your connection and try again. Nothing you typed was lost.</p><div style="display:flex; gap: var(--space-2)"><button class="btn" type="button">Try again</button><button class="btn secondary" type="button">Contact support</button></div></div></div>
+    </div>
+  </section>
+
+  <!-- ───────── dialects ───────── -->
+  <section class="block" id="dialects">
+    <div class="eyebrow">06 · dialects</div>
+    <h2>Same rules, two dialects</h2>
+    <p class="lede">The product dialect (left) reflows, shows visible controls and uses a fixed type scale. The showcase dialect (right) scales like one image (here <code>1em = 1cqw</code>, the in-page version of <code>1em = 1vw</code>), uses hairlines, empty space and display type, and has no radius or shadow. They share colour roles, spacing discipline, states and focus. Resize the window to see the difference.</p>
+    <div class="grid2">
+      <div class="dialect" data-dialect="product"><div class="tag">product</div>
+        <div class="prod"><div><h3 style="font-size: var(--text-xl)">Notifications</h3><p style="color:var(--ink-dim)">Choose what we send you, and when.</p></div>
+          <div class="row"><label class="check" for="n1">Weekly summary</label><button id="n1" class="switch" role="switch" aria-checked="true" aria-label="Weekly summary"></button></div>
+          <div class="row"><label class="check" for="n2">Mentions</label><button id="n2" class="switch" role="switch" aria-checked="false" aria-label="Mentions"></button></div>
+          <div class="row"><label class="check" for="n3">Product news</label><button id="n3" class="switch" role="switch" aria-checked="false" aria-label="Product news" disabled></button></div>
+          <div style="display:flex; gap: var(--space-3)"><button class="btn" type="button">Save changes</button><button class="btn secondary" type="button">Cancel</button></div></div></div>
+      <div class="dialect" data-dialect="showcase"><div class="tag">showcase</div>
+        <div class="showcase"><div class="inner">
+          <div class="labels"><span>Notifications, edited</span><span>Index / Journal / About</span><span>[Archive]</span></div>
+          <div class="rule"></div>
+          <div class="cols"><div class="l">Issue 14: Spring</div><div class="r"><h3>Fewer,<br>better<br>messages.</h3><a class="swap" href="#dialects">Read the essay<i></i><i></i></a></div></div>
+        </div></div></div>
+    </div>
+    <p class="note">What carries over from the showcase side into product UI: one gutter and one scale, hairlines instead of boxes, hierarchy from size and space, a hard left edge, generous empty space around the one action, a single signature hover. What doesn’t: the giant type, scale-with-window layout, and controls with no boundary at rest.</p>
+  </section>
+
+  <!-- ───────── don't / do ───────── -->
+  <section class="block" id="dont">
+    <div class="eyebrow">07 · don’t / do</div>
+    <h2>Four of the never-do items, side by side</h2>
+    <div class="dd">
+      <div class="pair2">
+        <div class="side bad"><div class="lab">Don’t</div><input class="input" placeholder="Email address" aria-label="Email address (bad example: the placeholder is the only label)"></div>
+        <div class="side good"><div class="lab">Do</div><div class="field"><label for="dd1">Email address</label><input class="input" id="dd1" placeholder="name@example.com"></div></div>
+        <p class="why">A placeholder vanishes as you type, has low contrast and isn’t a reliable label. Keep a visible label bound to the input.</p>
+      </div>
+      <div class="pair2">
+        <div class="side bad"><div class="lab">Don’t</div><button class="btn nofocus" type="button">Save</button><span class="note" style="margin:0">Tab here: nothing shows.</span></div>
+        <div class="side good"><div class="lab">Do</div><button class="btn is-focus" type="button">Save</button><span class="note" style="margin:0">Double ring, any background.</span></div>
+        <p class="why">Removing the outline strands keyboard users. One <code>:focus-visible</code> double ring for everything.</p>
+      </div>
+      <div class="pair2">
+        <div class="side bad"><div class="lab">Don’t</div><div style="display:grid; gap:7px"><div class="card" style="padding:13px 9px"><b>Plan</b><span>gaps 7 · padding 13 / 9</span></div><div class="card" style="padding:22px 15px; margin-top:5px"><b>Billing</b><span>margin 5 · padding 22 / 15</span></div></div></div>
+        <div class="side good"><div class="lab">Do</div><div style="display:grid; gap:var(--space-2)"><div class="card" style="padding:var(--space-4)"><b>Plan</b><span>gap 8 · padding 16</span></div><div class="card" style="padding:var(--space-4)"><b>Billing</b><span>gap 8 · padding 16</span></div></div></div>
+        <p class="why">One-off values are how consistency dies. Only the named steps exist.</p>
+      </div>
+      <div class="pair2">
+        <div class="side bad"><div class="lab">Don’t</div><span class="note" style="margin:0" title="Appears only on hover">Hover the icon for the price →</span><span class="chip fail" style="width:fit-content">(i) price on hover only</span></div>
+        <div class="side good"><div class="lab">Do</div><span style="font-weight:500">$24 / month</span><span class="note" style="margin:0">Visible, readable on touch and by keyboard.</span></div>
+        <p class="why">Information that appears only on hover doesn’t exist for touch or keyboard users.</p>
+      </div>
+    </div>
+  </section>
+  <footer style="padding: var(--space-8) 0 var(--space-9); color: var(--ink-faint); font-size: var(--text-sm)">ui-craft demo · tokens.css is the single source · see the skill’s references/ for the rules</footer>
+</main>
+
+<script>
+(function () {
+  const root = document.documentElement;
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+
+  /* theme + density switches */
+  $$('[data-set]').forEach((b) => b.addEventListener('click', () => {
+    const k = b.dataset.set;
+    root.dataset[k] = b.dataset.v;
+    $$(`[data-set="${k}"]`).forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    renderContrast();
+  }));
+
+  /* spacing ruler + type scale + swatches */
+  const sp = [['space-1', 4], ['space-2', 8], ['space-3', 12], ['space-4', 16], ['space-5', 24], ['space-6', 32], ['space-7', 48], ['space-8', 64], ['space-9', 96], ['space-10', 128]];
+  $('#ruler').innerHTML = sp.map(([n, v]) => `<div><span>--${n} · ${v}</span><i style="width:${v}px"></i></div>`).join('');
+  const ts = [['xs', 12, 16], ['sm', 14, 20], ['base', 16, 24], ['lg', 20, 28], ['xl', 24, 32], ['2xl', 32, 40], ['3xl', 40, 44], ['4xl', 56, 60]];
+  $('#types').innerHTML = ts.map(([n, s, l]) => `<div class="type-row"><small>--text-${n}<br>${s} / ${l}</small><span style="font-size:${s}px;line-height:${l}px;font-weight:${s >= 24 ? 500 : 400};letter-spacing:${s >= 32 ? '-0.02em' : '0'}">Hierarchy comes from size and space</span></div>`).join('');
+  const roles = ['bg', 'bg-subtle', 'panel', 'raised', 'border', 'border-strong', 'ink', 'ink-dim', 'ink-faint', 'accent', 'accent-ink', 'danger', 'warning', 'success', 'info'];
+  $('#swatches').innerHTML = roles.map((r) => `<div class="sw"><b style="background:var(--${r})"></b><span>--${r}</span></div>`).join('');
+
+  /* live contrast checker: resolve any CSS colour (oklch included) through a canvas, composite on the background */
+  const cv = document.createElement('canvas'); cv.width = cv.height = 1;
+  const g = cv.getContext('2d', { willReadFrequently: true });
+  const token = (n) => getComputedStyle(root).getPropertyValue(`--${n}`).trim();
+  function rgbOf(css, backdrop) {
+    g.clearRect(0, 0, 1, 1);
+    if (backdrop) { g.fillStyle = backdrop; g.fillRect(0, 0, 1, 1); }
+    g.fillStyle = css; g.fillRect(0, 0, 1, 1);
+    const d = g.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2]];
+  }
+  const lum = ([r, gg, b]) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(gg) + 0.0722 * f(b); };
+  const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const pairs = [
+    ['ink on bg', 'ink', 'bg', 4.5], ['ink-dim on bg', 'ink-dim', 'bg', 4.5], ['ink-faint on bg', 'ink-faint', 'bg', 4.5], ['ink on panel', 'ink', 'panel', 4.5],
+    ['accent-ink on bg (text / thin line)', 'accent-ink', 'bg', 4.5], ['on-accent on accent (button text)', 'on-accent', 'accent', 4.5],
+    ['danger on bg (error text)', 'danger', 'bg', 4.5], ['danger on danger-bg', 'danger', 'danger-bg', 4.5], ['success on success-bg', 'success', 'success-bg', 4.5], ['info on info-bg', 'info', 'info-bg', 4.5],
+    ['warning-ink on warning-bg', 'warning-ink', 'warning-bg', 4.5],
+    ['border-strong on bg (input boundary)', 'border-strong', 'bg', 3], ['focus ring on bg', 'focus', 'bg', 3], ['focus ring on panel', 'focus', 'panel', 3],
+  ];
+  function renderContrast() {
+    requestAnimationFrame(() => {
+      const bgForAlpha = token('bg');
+      $('#contrastTable tbody').innerHTML = pairs.map(([label, f, b, need]) => {
+        const bg = rgbOf(token(b), bgForAlpha); const fg = rgbOf(token(f), token(b));
+        const r = ratio(fg, bg); const ok = r >= need;
+        return `<tr><td>${label}</td><td><span class="pair" style="background:${token(b)};color:${token(f)}">Aa</span></td><td class="mono">${r.toFixed(2)}:1</td><td class="mono">${need}:1</td><td><span class="chip ${ok ? 'pass' : 'fail'}">${ok ? '✓ pass' : '✗ fail'}</span></td></tr>`;
+      }).join('');
+    });
+  }
+  renderContrast();
+
+  /* state matrix */
+  const S = ['default', 'hover', 'focus', 'active', 'disabled', 'loading', 'error'];
+  const cls = { hover: 'is-hover', focus: 'is-focus', active: 'is-active' };
+  const btn = (v, s, label) => `<button class="btn ${v} ${cls[s] || ''}" type="button" ${s === 'disabled' ? 'disabled' : ''} ${s === 'loading' ? 'aria-busy="true"' : ''}>${s === 'loading' ? '<span class="spin" aria-hidden="true"></span>' : ''}${label}</button>`;
+  const rows = [
+    ['Primary button', (s) => s === 'error' ? null : btn('', s, 'Save')],
+    ['Secondary button', (s) => s === 'error' ? null : btn('secondary', s, 'Cancel')],
+    ['Accent button (one per view)', (s) => s === 'error' ? null : btn('accent', s, 'Upgrade')],
+    ['Link', (s) => s === 'error' || s === 'loading' ? null : `<a class="link ${cls[s] || ''}" href="#states" ${s === 'disabled' ? 'aria-disabled="true"' : ''}>View details</a>`],
+    ['Text input', (s) => `<input class="input ${cls[s] || ''} ${s === 'error' ? 'is-error' : ''}" style="min-width:140px" value="${s === 'default' ? '' : 'name@example.com'}" placeholder="Email" aria-label="Email, ${s} state" ${s === 'disabled' ? 'disabled' : ''} ${s === 'error' ? 'aria-invalid="true"' : ''}>`],
+    ['Checkbox', (s) => s === 'loading' ? null : `<label class="check"><input type="checkbox" class="${cls[s] || ''} ${s === 'error' ? 'is-error' : ''}" ${s === 'disabled' ? 'disabled' : ''} ${s === 'active' ? 'checked' : ''}> ${s === 'error' ? 'Required' : 'Agree'}</label>`],
+    ['Switch', (s) => s === 'error' || s === 'loading' ? null : `<button class="switch ${cls[s] || ''}" role="switch" aria-checked="${s === 'active'}" aria-label="Switch, ${s} state" ${s === 'disabled' ? 'disabled' : ''}></button>`],
+    ['Tab', (s) => s === 'error' || s === 'loading' ? null : `<button class="tab ${cls[s] || ''}" role="tab" aria-selected="${s === 'default'}" ${s === 'disabled' ? 'disabled' : ''}>Overview</button>`],
+    ['Card (clickable)', (s) => s === 'error' ? null : `<button class="card ${cls[s] || ''}" type="button" style="min-width:150px" ${s === 'disabled' ? 'disabled' : ''}>${s === 'loading' ? '<span class="skel" style="display:block;height:12px;width:80%;margin-bottom:8px"></span><span class="skel" style="display:block;height:12px;width:50%"></span>' : '<b>Starter</b><span>$12 / month</span>'}</button>`],
+  ];
+  $('#matrix').innerHTML = `<thead><tr><th></th>${S.map((s) => `<th>${s}</th>`).join('')}</tr></thead><tbody>${rows.map(([name, f]) => `<tr><th scope="row">${name}</th>${S.map((s) => { const h = f(s); return h ? `<td>${h}</td>` : '<td class="na">n/a</td>'; }).join('')}</tr>`).join('')}</tbody>`;
+
+  /* switches in the dialect demo */
+  $$('.switch[role="switch"]').forEach((b) => b.addEventListener('click', () => b.setAttribute('aria-checked', String(b.getAttribute('aria-checked') !== 'true'))));
+
+  /* the wired form */
+  const form = $('#demoForm'); const sum = $('#errsum');
+  const rules = {
+    email: { el: $('#email'), box: $('#f-email'), ok: (v) => /^\S+@\S+\.\S+$/.test(v), msg: 'Enter an email like name@example.com' },
+    pw: { el: $('#pw'), box: $('#f-pw'), ok: (v) => v.length >= 8, msg: 'Use at least 8 characters' },
+  };
+  const touched = new Set();
+  function validate(k, show) {
+    const r = rules[k]; const bad = !r.ok(r.el.value);
+    const showErr = bad && show;
+    r.box.classList.toggle('has-error', showErr);
+    r.el.setAttribute('aria-invalid', String(showErr));
+    if (k === 'pw') $('#pwLen').textContent = r.el.value.length;
+    return !bad;
+  }
+  Object.keys(rules).forEach((k) => {
+    rules[k].el.addEventListener('blur', () => { touched.add(k); validate(k, true); });
+    rules[k].el.addEventListener('input', () => validate(k, touched.has(k)));   // revalidate only after the first blur
+  });
+  $('#pwToggle').addEventListener('click', (e) => { const p = rules.pw.el; const show = p.type === 'password'; p.type = show ? 'text' : 'password'; e.currentTarget.textContent = show ? 'Hide' : 'Show'; e.currentTarget.setAttribute('aria-pressed', String(show)); });
+  form.addEventListener('reset', () => { setTimeout(() => { sum.classList.remove('on'); Object.keys(rules).forEach((k) => { touched.delete(k); validate(k, false); }); $('#status').textContent = ''; }, 0); });
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const bad = Object.keys(rules).filter((k) => { touched.add(k); return !validate(k, true); });
+    if (bad.length) {
+      sum.innerHTML = `<strong>Fix ${bad.length} ${bad.length > 1 ? 'things' : 'thing'} to continue:</strong><ul style="margin:var(--space-2) 0 0; padding-left:var(--space-5)">${bad.map((k) => `<li><a class="link" href="#${rules[k].el.id}">${k === 'email' ? 'Email' : 'Password'}: ${rules[k].msg}</a></li>`).join('')}</ul>`;
+      sum.classList.add('on'); sum.focus();
+      return;
+    }
+    sum.classList.remove('on');
+    const b = $('#submitBtn'); b.setAttribute('aria-busy', 'true'); $('#submitLabel').innerHTML = '<span class="spin" aria-hidden="true"></span> Saving';
+    setTimeout(() => { b.removeAttribute('aria-busy'); $('#submitLabel').textContent = 'Create account'; $('#status').textContent = 'Account created. Check your email for the receipt.'; }, 1400);
+  });
+  $$('#errsum').forEach((el) => el.addEventListener('click', (e) => { const a = e.target.closest('a'); if (a) { e.preventDefault(); $(a.getAttribute('href')).focus(); } }));
+})();
+</script>
+</body>
+</html>

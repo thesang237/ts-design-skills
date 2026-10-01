@@ -42,6 +42,31 @@ A 1 to 2px lift (`translateY(calc(var(--lift) * -1))`) is the maximum.
 .link:focus-visible::after { transform: scaleX(1); transform-origin: left; }
 ```
 
+## Swap hovers: one thing leaves, its twin arrives
+
+An editorial alternative to colour change. Instead of fading, the old element **leaves in one direction while an identical one arrives from the other**, so
+the hover reads as a continuous belt. It works with no colour change at all (good on black-and-paper pages), and it suits **showcase
+and editorial links and buttons, not dense product UI**. Three forms, one idea:
+
+| Swap | Markup | In | Out |
+| --- | --- | --- | --- |
+| **Underline swap** (text links) | two 1px lines at the bottom; line 2 parked off-left (`left: -140%`) | both lines `xPercent: +140`, 500ms, in-out | back to 0 after a 200ms wait, 400ms |
+| **Arrow swap** (buttons) | two arrows in a one-arrow clipping window; arrow 2 parked at `xPercent: -150` | arrow 1 → +150%, arrow 2 → 0, 400ms in-out | back, 300ms ease-out |
+| **Rule wipe** (a button's top rule) | two rules in an `overflow: hidden` strip; rule 2 parked at −100% | rule 1 → +110% (800ms ease-out), rule 2 → 0, 100ms later | rule 2 → −110%, rule 1 → 0, 500ms |
+
+```ts
+const lines = link.querySelectorAll('[data-line]')            // both move +140%: one leaves right, one arrives from the left
+const enter = () => gsap.to(lines, { xPercent: 140, duration: 0.5, ease: 'ease.inOut', overwrite: true })
+const leave = () => gsap.to(lines, { xPercent: 0,   duration: 0.4, delay: 0.2, ease: 'ease.inOut', overwrite: true })
+link.addEventListener('mouseenter', enter); link.addEventListener('mouseleave', leave)
+link.addEventListener('focus', enter);      link.addEventListener('blur', leave)      // keyboard gets the same effect
+```
+- **Interruptible:** use `.to()` with `overwrite: true`. A `fromTo()` restarts from a fixed value and visibly jumps on a quick in-and-out. The 200ms wait before leaving is a tiny debounce so a grazing mouse doesn't flicker.
+- **GSAP owns both ends.** Park the start state with `gsap.set(el, { xPercent: -150 })`, not in CSS: a CSS `translateX(-150%)` is read by GSAP as pixels and the two stack (see `pitfalls.md`).
+- Gate with `(hover: hover) and (pointer: fine)` in CSS or by checking `matchMedia` before adding the listeners; keep a visible underline, arrow or rule **at rest** so the control still looks like a control.
+- Timings above are the studied page's. House style would be `fast` to `base` (160 to 240ms); the longer ones belong to showcase pages (immersive register).
+- Reduced motion: no swap; change colour or add a static underline instead.
+
 ## Rolling letters (for short links and buttons)
 
 Each letter slides up to reveal a copy of itself, 12ms apart. Pure CSS, so a quick in-and-out is smooth.

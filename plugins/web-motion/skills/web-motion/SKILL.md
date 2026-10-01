@@ -1,12 +1,12 @@
 ---
 name: web-motion
-description: Use when adding, changing or reviewing any animation or motion on a website or web app, for example easing and duration choices, entrance and scroll-triggered reveals, scroll-mapped scenes (enter, hold, exit tied to scroll progress, pinned or in flow), stagger and choreography, hover and press micro-interactions, text reveals (split lines/words/characters, masks, scramble, typing), springs and drag, smooth scrolling, scroll-to-value mapping and pointer smoothing/parallax, or choosing between CSS, GSAP and Motion. Also holds opt-in effects used only when the request names them: a one-film scroll page (master timeline in screens of scroll), magnetic buttons, scroll-speed reactions and a decode HUD, plus an immersive-site mode for WebGL storytelling sites. Provides named motion presets (one source for CSS, GSAP and Motion), stagger and choreography rules, reduced-motion recipes for every tool, and performance rules (transform/opacity only, no layout thrashing). For page loaders and route transitions use page-transitions; for WebGL/3D motion use 3d-web.
+description: Use when adding, changing or reviewing any animation or motion on a website or web app, for example easing and duration choices, entrance and scroll-triggered reveals, scroll-mapped scenes (enter, hold, exit tied to scroll progress, pinned or in flow), pinned multi-layer stages (a tall track, a sticky stage, keyframe tracks per layer, scrubbed vector animation), image entrances (colour placeholder, settle zoom, cover and zoom, capped group stagger), stagger and choreography, hover and press micro-interactions (including swap hovers), text reveals (split lines/words/characters, masks, scramble, typing), springs and drag, smooth scrolling, scroll-to-value mapping and pointer smoothing/parallax, or choosing between CSS, GSAP and Motion. Also holds opt-in effects used only when the request names them: a one-film scroll page (master timeline in screens of scroll), magnetic buttons, scroll-speed reactions and a decode HUD, plus an immersive-site mode for WebGL storytelling sites. Provides named motion presets (one source for CSS, GSAP and Motion), stagger and choreography rules, reduced-motion recipes for every tool, and performance rules (transform/opacity only, no layout thrashing). For page loaders and route transitions use page-transitions; for WebGL/3D motion use 3d-web.
 ---
 
 # Web motion
 
 Motion should explain what changed and make the interface feel responsive, never make anyone wait.
-Checked on 2026-09-30 against GSAP 3.15 (incl. `quickTo`, SplitText `autoSplit`), Motion 13.4,
+Checked on 2026-10-01 against GSAP 3.15 (incl. `quickTo`, SplitText `autoSplit`), Motion 13.4,
 Lenis 1.3.26 (`stop`/`start`, `infinite`, `respectReducedMotion`), React 19 and current CSS support. Code for everything below is in `references/`, and a runnable demo with a live tuner is in
 `demos/web-motion/`.
 
@@ -40,6 +40,7 @@ Never pick these silently. Ask, then write the answers down in the project.
 - **Immersive-site mode** (added 2026-09-30): only for WebGL / scroll-storytelling sites the designer
   calls immersive. It allows a stronger arrival curve, longer text reveals over 3D, and one playful
   release (magnetic buttons). Everything else keeps the house style. Values: `references/immersive.md`.
+- **Scroll stages, image entrances and swap hovers** (added 2026-10-01, from a studied editorial page): available as a toolkit, **starting points only**: ask the designer for stage length, smoothing, which layers, and whether the page is showcase (longer entrances, swap hovers) or product UI (house values). Values: `presets.md` §8.
 - **Special effects are opt-in by name** (added 2026-09-30): the one-film scroll page, magnetic
   buttons, scroll-speed reactions and the decode HUD are in the toolkit but are **never applied unless
   the request names them** (table below).
@@ -56,6 +57,9 @@ All values live in one presets file: `references/presets.md`.
 | Scroll-triggered reveals in React | **Motion `whileInView`** for blocks and groups; **GSAP ScrollTrigger** for text and timelines | Motion uses one pooled observer; GSAP gives exact sequencing |
 | Scroll-linked (scrubbed) effects | **GSAP ScrollTrigger `scrub`**, or **Motion `useScroll`** (uses the browser's native scroll timeline where it can); CSS `animation-timeline` only as a bonus layer | CSS scroll timelines are not in Firefox stable yet |
 | Scroll scenes: a section's heading, text and UI enter, hold, then exit with the scroll | **GSAP**: one timeline (enter, hold, exit) mapped to scroll progress, `position: sticky` for pinning | Direction options (rewind, play back, stay), split text, every browser |
+| A pinned stage with many layers (photos, headings, counters), or one long scrubbed story | **Sticky stage + keyframe tracks on one progress** (GSAP ticker; `ScrollTrigger` pin only when sticky can't) | One smoothed progress, linear tracks, stagger as start positions, a phone fallback (`scroll-stage.md`) |
+| A vector animation (Lottie) driven by scroll | **`lottie-web` light build, `goToAndStop(frame, true)`** from a progress→frame track | Sub-frame scrubbing; the file's pacing can be bent |
+| A group of images arriving (grid, deck) | **GSAP timeline or `ScrollTrigger.batch`**, colour placeholder behind each photo | Capped stagger inside each batch, transform and opacity only (`image-motion.md`) |
 | Split text, masks, scramble, typing, multi-step timelines | **GSAP** (SplitText, timelines, CustomEase) | Precise sequencing, re-splits by itself on font load and resize |
 | Drag, swipe, anything that follows a finger | **Motion springs** | They carry the hand's speed and can be interrupted |
 | Page loaders and route changes | **page-transitions skill** | |
@@ -99,6 +103,10 @@ transitions and GSAP both animate `transform` on the same element.
 17. **Scroll drives numbers; numbers drive visuals.** Map scroll to 0..1 progress, then to values
     (normalise → clamp → ease → lerp). Discrete UI (captions, active dots) changes only when its value
     changes, never re-rendered every frame.
+18. **One owner per element and property.** If GSAP animates a transform or opacity, GSAP also sets its start state (`gsap.set`, `fromTo`); never split one transform between CSS and GSAP, and never `clearProps: 'all'` on an element that has framework-set inline styles.
+19. **Scrubbed tracks are linear; timed animations get the curves.** Stagger inside a scrubbed scene is a different start position on the track, not a delay.
+20. **Swap hovers (one thing leaves, its twin arrives) belong on showcase and editorial pages**; build them with `.to()` + `overwrite` so a quick in-and-out reverses from where it is. Product UI keeps the quiet house hover.
+21. **Images arrive in two beats:** a colour placeholder already on screen, then the photo fading in (and settling) over it, with a capped stagger for groups. A pinned stage is replaced by plain stacked content on phones.
 
 ## Quality checklist (run before calling it done)
 
@@ -117,6 +125,10 @@ transitions and GSAP both animate `transform` on the same element.
 - [ ] Works in Chromium, Firefox and WebKit, phone and desktop, light and dark
 - [ ] Opt-in effects appear only where the request named them; immersive presets only on sites agreed as immersive
 - [ ] Pointer-following and velocity effects feel the same at 60Hz and 120Hz (damp / quickTo, not per-frame lerp)
+- [ ] Pinned stage: holds are still (nothing creeps), the stage releases at the end of its track, scrubbed tracks are linear, a phone gets a stacked layout, reload halfway shows every layer
+- [ ] No element has a CSS and a GSAP transform at once; start states are set in GSAP
+- [ ] Images: a colour box is visible before the photo, boxes have a fixed aspect ratio (no layout shift), group stagger stays within about 0.5s, reduced motion shows photos with one short fade
+- [ ] Swap hovers reverse smoothly on a quick in-and-out and keyboard focus gets the same effect
 - [ ] The designer's answers above are respected and written down
 
 ## Reference files
@@ -126,7 +138,9 @@ transitions and GSAP both animate `transform` on the same element.
 - `references/choreography.md`: stagger, sequencing, enter/exit, interruption, how often something is seen
 - `references/scroll.md`: scroll-triggered (once / every time) and scroll-linked motion, pinning, smooth scrolling
 - `references/scroll-scenes.md`: enter / hold / exit mapped to scroll progress, pinned or in flow, scroll-up options (GSAP, Motion, CSS)
-- `references/hover-press.md`: buttons, links, rolling text, showcase cards, toggles, status loops
+- `references/scroll-stage.md`: a pinned stage with many layers on one progress: tall track + sticky stage, keyframe tracks, smoothing, scrubbed Lottie, phone fallback
+- `references/image-motion.md`: colour placeholders, entrance and settle, cover-and-zoom, capped group stagger, cheap images
+- `references/hover-press.md`: buttons, links, swap hovers, rolling text, showcase cards, toggles, status loops
 - `references/text-reveals.md`: masked and unmasked split reveals, scramble, typing, with enter/exit/hover
 - `references/reduced-motion.md`: a recipe for CSS, Motion, GSAP, Lenis and loops
 - `references/performance.md`: budgets, what is cheap and what isn't, a measuring script

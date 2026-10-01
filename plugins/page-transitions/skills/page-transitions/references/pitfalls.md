@@ -38,6 +38,19 @@ testing the demo. Numbers are from production builds in headless Chromium unless
 | Transition on hash-only links | Pointless animation | Skip when the pathname is unchanged |
 | A `loading.tsx` that repeats the page heading | Heading remounts and its entrance replays when data arrives | Put the Suspense boundary inside the page |
 
+## Overlays and hand-over loaders (found while rebuilding a showcase page, 2026-10-01)
+
+| Problem | How it showed up | Fix |
+| --- | --- | --- |
+| Overlay start state in CSS **and** in the tween | The gallery panel started 10% lower than designed (the two offsets added) | Set start states in the timeline (`yPercent: 10, y: 0`); GSAP owns both ends |
+| `clearProps: 'all'` while resetting an overlay | Wiped the inline backdrop colour React had set; the blur layer went transparent | Clear only the animated properties |
+| Closing implemented as `timeline.reverse()` | The surface left first and the text last, which looks wrong | Write the close as its own list (text first, surface last) |
+| `display: none` never restored / never set | An invisible overlay kept eating clicks, or a hidden one stayed in the tab order | Set display at the end of the closing timeline; show it before the opening one |
+| Page scrolled behind an open overlay | Wheel moved the page under the blur | `lenis.stop()` while open (and `data-lenis-prevent` on the overlay's own scroller) |
+| Hand-over frame differed by a pixel from the hero logo | A faint double logo during the cross-fade | Same box, same aspect ratio; compare screenshots at the hand-over frame |
+| Hand-over loader plays on every visit | A 4.5s intro is too long to repeat | Once per session (`sessionStorage`), and a click to skip |
+| A grid column grew with a wide child | On a phone, a 640px preview kept its column 640px wide | `min-width: 0` on grid and flex children |
+
 ## Scroll and focus
 
 | Problem | How it showed up | Fix |

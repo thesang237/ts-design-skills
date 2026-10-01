@@ -1,0 +1,8 @@
+{
+  "name": "product-configurator",
+  "version": "0.1.0",
+  "description": "High-end 3D product configurators for landing pages and stores, for any product: the product as data (options, rules that explain themselves and offer a fix, pricing, shareable links, undo and reset), stutter-free material and shape swaps, a shop-sheet options panel with every state, camera presets that follow the edited part, poster-first loading and budgets, and cart, snapshot and AR hand-off.",
+  "author": {
+    "name": "Sang"
+  }
+}

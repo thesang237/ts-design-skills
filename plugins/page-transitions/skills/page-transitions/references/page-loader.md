@@ -205,6 +205,42 @@ Ask first whether the designer wants one. If so:
 - Render a static mark (CSS) first, so something is visible before the player loads; never make the page wait for the player.
 - Give it a start timeout (~2s). If it fails, fall back to the CSS intro and still honour the minimum.
 
+## Variant: the hand-over loader (the loader's logo becomes the hero logo)
+
+For showcase and editorial sites. Instead of a loader that leaves and a page that arrives, the loader's animation **is** the page's first frame:
+a vector logo builds on a black sheet, the sheet lifts away, and the logo lands exactly where the hero's own logo sits. The page then builds around it. No cut, no
+second logo, and old and new content are never both on screen (the only “old” thing is the black sheet).
+
+Measured timeline of a studied page (ms from the start; the intro is ~4.5s, so use it **once per session** and let a click skip it):
+
+| At | What | How |
+| --- | --- | --- |
+| 0 → 3750 | The logo builds (a Lottie played by a timeline, frame 0 → 99.9%) | the loader layer is a full-screen black sheet with the Lottie on it |
+| 1000 → 1900 | The black sheet lifts off the top, revealing the paper; the logo keeps playing on top | `yPercent: -100`, 900ms, in-out |
+| 3000 → 3800 | The hero's thick bar grows (height 0 → full) | 800ms, in-out |
+| 3200 → 3700 | The hero's own logo fades in under the loader's (identical position and size) | opacity, 500ms |
+| 3200 → 4200 | The hairline draws (0 → 98% wide) | 1000ms, in-out |
+| 3600, 3700, 3800 | The three hero lines rise from their masks; nav, scroll cue and list fade in; the vertical rule grows | 1000ms ease-out each, 100ms apart |
+| 4400 → 4900 | The loader layer fades out (the hero logo underneath is identical) | opacity, 500ms; then `display: none` |
+
+Rules:
+- **The loader's last frame must equal the hero composition**: same box (width and aspect ratio), same position. Compare screenshots of the hand-over frame; if they differ by a pixel, the cross-fade shows a double image.
+- **The page below does not start building until the sheet has left** (here the first piece starts at 3000, the sheet leaves at 1900).
+- **Phones get their own start:** the logo starts 3× larger and 35vh lower and eases into place (1000ms in-out) while the sheet lifts, because the full-width logo is tiny at phone width.
+- It is a **fixed-length intro** (never shorter than the whole animation), so it follows the loader rules above: server-rendered start state, `display: none` when done, once per session, a hard timeout if the animation file fails (fall back to the CSS intro).
+- Reduced motion: skip the Lottie; show the sheet, then the page, with the quiet fade.
+
+```ts
+const tl = gsap.timeline({ paused: true })
+tl.to(progress, { p: 99.9, duration: 3.75, ease: 'none', onUpdate: () => setLottieProgress(anim, progress.p) }, 0)
+  .to(sheet, { yPercent: -100, duration: 0.9, ease: 'ease.inOut' }, 1.0)
+  .to(heroBar, { height: '3.19em', duration: 0.8, ease: 'ease.inOut' }, 3.0)
+  .to(heroLogo, { opacity: 1, duration: 0.5, ease: 'none' }, 3.2)
+  .to(heroLines, { yPercent: 0, duration: 1, ease: 'ease.out', stagger: 0.1 }, 3.6)
+  .to(loader, { opacity: 0, duration: 0.5, ease: 'none' }, 4.4)
+  .set(loader, { display: 'none' }, 4.5)
+```
+
 ## Measured in the demo (production build; intro mode, 1400ms)
 
 | Check | Result |

@@ -1,12 +1,12 @@
 ---
 name: page-transitions
-description: Use when adding, changing or reviewing a page loader or intro, page/route transitions, shared-element (morph) transitions or navigation animation on a React or Next.js (App Router) site. Helps choose between native View Transitions, GSAP and Motion, builds a first-load intro/loader and a per-navigation transition that never overlap old and new content, and enforces reduced-motion, keyboard/screen-reader, scroll-restoration and 60fps rules. Timing and easing values come from the web-motion skill.
+description: Use when adding, changing or reviewing a page loader or intro, page/route transitions, shared-element (morph) transitions, one-direction page wipes, overlays that open over a page (gallery, phone menu, dialogs), hand-over loaders (a logo animation that becomes the hero) or navigation animation on a React or Next.js (App Router) site. Helps choose between native View Transitions, GSAP and Motion, builds a first-load intro/loader and a per-navigation transition that never overlap old and new content, and enforces reduced-motion, keyboard/screen-reader, scroll-restoration and 60fps rules. Timing and easing values come from the web-motion skill.
 ---
 
 # Page transitions
 
 Make moving between pages feel continuous, without slowing anyone down or leaving anyone out.
-Checked on 2026-09-30 against Next.js 16.3, React 19.3, Motion 13, GSAP 3.15. Working code for
+Checked on 2026-10-01 against Next.js 16.3, React 19.3, Motion 13, GSAP 3.15. Working code for
 everything below lives in `references/`, and a runnable demo is in `demos/page-transitions/`.
 
 Two separate pieces, never mixed up:
@@ -46,6 +46,8 @@ split, curtain, loader) are in `references/timing-values-to-move.md`.
 | Loading state on a slow route | **Suspense + skeleton** (with native reveal) | Screen never freezes; content fades in when ready |
 | First-visit loader / intro | **CSS + a tiny inline script** (no library); a self-hosted Lottie only if the designer wants one | Must work before React and the animation libraries have loaded |
 | Choreographed cover/curtain, timelines, split text, canvas/SVG | **GSAP** | Precise sequencing, works in every browser |
+| A gallery, menu or dialog opening over the page; a one-direction page wipe | **GSAP timelines written as tween lists** (`transitions-gsap.md`) | Exact start times, closing written separately from opening |
+| A showcase intro where the loader's logo becomes the hero logo | **GSAP timeline + a Lottie/SVG, once per session** (`page-loader.md`, hand-over variant) | One continuous first frame; nothing overlaps |
 | Springs, interruptible motion, first-load entrances, overlays | **Motion** | Physical feel, easy React lifecycle |
 | Spring-based morph across pages | **Motion `AnimateView`** (React 19.3+) | Native transition with spring timing. Test before shipping |
 
@@ -69,6 +71,8 @@ element in the same moment. Avoid the old "AnimatePresence + frozen router" patt
 12. **Interruption**: native styles must not swallow a second click. The curtain deliberately blocks input while its box is up (about one second); say so.
 13. **No brand or client specifics** in reusable code: names, logos, copy and colours are placeholders.
 14. Know the limit: **the browser's own Back/Forward buttons are not animated** by Next 16.3 (they cut instantly, scroll is still restored). Say so; do not promise otherwise. See `references/pitfalls.md`.
+15. **Overlays are dialogs, written as data.** Lock scroll while open, Escape closes, focus moves in and returns to the opener, the close is its own sequence (content first, surface last, `display: none` at the end), and the backdrop blur is static with an animated opacity.
+16. **One owner per element and property.** If GSAP animates it, GSAP sets its start state; never let a stylesheet transform and a tween both move one element (`pitfalls.md`).
 
 ## Quality checklist (run before calling it done)
 
@@ -87,13 +91,15 @@ element in the same moment. Avoid the old "AnimatePresence + frozen router" patt
 - [ ] A second click mid-transition ends on the last link (native styles)
 - [ ] Production build only: durations correct (a minified `.8s` parsed right), no console or hydration errors
 - [ ] Works in Chromium, Firefox and WebKit engines
+- [ ] Overlays: scroll locked while open, Escape closes, focus returns to the opener, closing is its own sequence, hidden overlays are out of the tab order
+- [ ] Hand-over loader (if used): the last loader frame equals the hero frame, the page waits for the sheet to leave, once per session, skippable
 - [ ] The designer's answers above are respected and written down
 
 ## Reference files
 
 - `references/view-transitions.md`: native transitions in Next.js (page, direction, morph, Suspense), plus plain-JS version
-- `references/page-loader.md`: the first-load intro/loader, sequencing, readiness, session rule
-- `references/transitions-gsap.md`: the curtain (cover, hold, uncover, content) and other GSAP choreography
+- `references/page-loader.md`: the first-load intro/loader, sequencing, readiness, session rule, and the hand-over loader variant
+- `references/transitions-gsap.md`: the curtain (cover, hold, uncover, content), overlay choreography (gallery, menu, one-direction wipe) and other GSAP choreography
 - `references/transitions-motion.md`: first-load entrances, overlays and spring morphs with Motion
 - `references/accessibility.md`: reduced motion, focus, screen readers, skip link, scroll
 - `references/performance.md`: budgets and a script that measures them

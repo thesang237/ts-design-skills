@@ -6,10 +6,11 @@ A personal collection of design skills for [Claude Code](https://claude.com/clau
 
 | Skill | What it's for |
 | --- | --- |
-| **ui-craft** | Interface design craft: layout, spacing, typography, color, polish |
-| **web-motion** | Motion presets (easing, durations, stagger) shared by CSS, GSAP and Motion; scroll reveals, scroll scenes and progress mapping; hover and press; text reveals; an immersive-site mode and opt-in effects (one-film scroll, magnetic buttons, scroll-speed reactions, decode HUD); reduced motion and performance. Has a runnable demo in `demos/web-motion` |
-| **page-transitions** | First-load intro/loader and page transitions for React / Next.js (native View Transitions, GSAP, Motion). Has a runnable demo in `demos/page-transitions` |
+| **ui-craft** | Interface design craft: spacing and type scales, OKLCH colour tokens and contrast, hairline-first radius and depth, grid and container queries, the full component state matrix, wired forms, product vs showcase dialects, polish details and a never-do list. Has a runnable demo in `demos/ui-craft` |
+| **web-motion** | Motion presets (easing, durations, stagger) shared by CSS, GSAP and Motion; scroll reveals, scroll scenes, pinned multi-layer stages and progress mapping; image entrances; hover and press (incl. swap hovers); text reveals; an immersive-site mode and opt-in effects (one-film scroll, magnetic buttons, scroll-speed reactions, decode HUD); reduced motion and performance. Has a runnable demo in `demos/web-motion` |
+| **page-transitions** | First-load intro/loader (incl. hand-over loaders), page transitions and overlays (gallery, menu, wipes) for React / Next.js (native View Transitions, GSAP, Motion). Has a runnable demo in `demos/page-transitions` |
 | **3d-web** | three.js / React Three Fiber in Next.js: setup, camera and light presets, shaders, glTF compression, scroll- and pointer-driven 3D, blending with page UI, device quality tiers, poster fallbacks, WebGPU, cleanup. Has a runnable demo in `demos/3d-web` |
+| **product-configurator** | High-end 3D product configurators for landing pages and stores, for any product: options and compatibility rules as data (with reasons and one-click fixes), pricing, shareable links, undo and reset, stutter-free material and shape swaps, a shop-sheet panel with every state, camera presets that follow the edited part, poster-first loading and budgets, cart, snapshot and AR hand-off. Has a runnable demo (a lounge chair built in code) in `demos/product-configurator` |
 | **quality-check** | Reviewing work for consistency, accessibility and polish |
 | **create-learn-page** | Learn / breakdown pages that teach how a project works: curriculum, chapter guide, live demos with dials, flashcards and quiz, verification |
 | **skill-retro** | Run `/skill-retro` at the end of a project: evidence, then corrected / broke / slow / worked, then proposed skill updates in a visual report, saved only when approved. Sample report in `demos/skill-retro` |
@@ -87,6 +88,7 @@ Then install whichever skills you want:
 /plugin install page-transitions@ts-design-skills
 /plugin install create-learn-page@ts-design-skills
 /plugin install skill-retro@ts-design-skills
+/plugin install product-configurator@ts-design-skills
 ```
 
 (For a private repository, you need to be signed in to GitHub on your computer.)

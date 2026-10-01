@@ -148,3 +148,22 @@ live. Use the same idea in a project during reviews, then paste the chosen value
 page-transitions uses the same three curves and takes its phases as fractions of the 800ms page
 duration (`--pt-dur`). Its first-load entrance (700ms, 18px rise, 70ms stagger) is this file's
 `reveal` / `rise` / `stagger`.
+
+## 8. Scroll, image and swap presets (added 2026-10-01, from a studied editorial page)
+
+Starting points for scrubbed stages, image entrances and swap hovers. They are **not house defaults**: ask the designer, and keep the house
+values for product UI.
+
+| Preset | Value | Use it for |
+| --- | --- | --- |
+| `scroll-smoothing` | 70 (30% of the gap per 60Hz frame, about 0.17s to 97%) | Smoothing a scrubbed scene's progress; 60 on phones. GSAP `scrub: 0.15` to `0.2` is the nearest equivalent |
+| `stage-length` | 6 to 10 screens (`svh`) | A pinned stage; the stage is stuck for `(length - 1) / length` of the track |
+| `track-curve` | `linear` | Every scrubbed keyframe track |
+| `settle` | 1.06 → 1 in 700ms (house) · 1.1 → 1.02 in 1.8s (showcase) | Photo entrance zoom |
+| `swap-in / swap-out` | 400 to 500ms in-out / 300 to 400ms, out starts 200ms late | Underline, arrow and rule swap hovers (showcase) |
+| `overlay-open` | backdrop 1.2s, panel 1.0s from 10% (starts 0.3s), content 1.4s (starts 0.4s) | Gallery-style overlays (page-transitions) |
+
+```ts
+export const SCROLL = { smoothing: 70, phoneSmoothing: 60, trackCurve: 'linear' } as const
+export const SETTLE = { house: { from: 1.06, to: 1, ms: 700 }, showcase: { from: 1.1, to: 1.02, ms: 1800 } } as const
+```

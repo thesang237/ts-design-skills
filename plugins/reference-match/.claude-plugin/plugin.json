@@ -1,0 +1,8 @@
+{
+  "name": "reference-match",
+  "version": "0.1.0",
+  "description": "Rebuild or match a page from a reference: a screen recording, saved HTML and its assets. Measure from pixels, compare side by side at the same moments, identify every asset before wiring it, and keep the study private and original.",
+  "author": {
+    "name": "Sang"
+  }
+}

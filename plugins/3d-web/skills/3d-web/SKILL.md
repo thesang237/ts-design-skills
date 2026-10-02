@@ -31,6 +31,10 @@ Related skills (don't repeat them here):
   falls back to WebGL 2 by itself, but custom shaders must be rewritten in TSL. See `references/webgpu.md`.
 - **Weak devices get lighter 3D, not broken 3D**: lower pixel ratio, fewer particles, no shadows.
   **No WebGL, a lost context, or reduced motion → a designed still image** (poster) of the scene.
+- **Scenes inside cards or windows** (added 2026-10-03): **the card is a mask**. Its frame leans and
+  turns; the picture stays upright with its own scroll and pointer parallax. **Pointer parallax turns
+  the view** (orbit/tilt) rather than sliding it, with the frame slower than the picture.
+  See `references/painted-cards.md`.
 - Mood/light, model source and interaction are asked per project.
 
 ## Which approach? (decision guide)
@@ -46,6 +50,7 @@ Related skills (don't repeat them here):
 | A model from a 3D artist | **glTF (.glb)**, optimised with glTF Transform, loaded with Meshopt/Draco + KTX2 | Smallest download, GPU-compressed textures |
 | Scroll choreography | A dials object driven by the master timeline (web-motion) | Scroll never touches three.js directly |
 | Labels next to 3D objects | HTML positioned by `vector.project(camera)` (or drei `<Html>`) | Real, accessible, crisp text |
+| Shaped cards that hold a layered or 3D picture (they lean, turn, hand off) | **Render-to-texture paintings + a screen-space mask** (`references/painted-cards.md`) | The frame moves, the picture stays upright with its own parallax |
 
 ## Core rules
 
@@ -99,6 +104,7 @@ Related skills (don't repeat them here):
 - `references/scroll-pointer.md`: scroll-driven dials, camera rails, pointer, picking, gestures
 - `references/dom-blending.md`: layering 3D with page UI, HTML labels, views in sections, overlays
 - `references/compositing.md`: render targets, blending worlds, post effects in one pass
+- `references/painted-cards.md`: painted scenes inside shaped cards: cards as masks, pointer turns, multi-face cards, SDF tab shapes
 - `references/performance-tiers.md`: device tiers, runtime quality, budgets, the measuring script
 - `references/fallbacks.md`: support detection, poster, reduced motion, context loss
 - `references/cleanup.md`: disposal, route changes, verifying memory

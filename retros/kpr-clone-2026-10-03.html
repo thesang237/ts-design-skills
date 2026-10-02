@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Skill retro</title>
+<style>
+  :root {
+    --bg: #f6f5f2; --paper: #ffffff; --ink: #17181b; --dim: #5d6168; --faint: #8b9098; --line: #e4e2dc;
+    --corrected: #6a4dd8; --broke: #d0433a; --slow: #c7860e; --worked: #1f8a5b; --accent: #17181b;
+    --add: #e7f5ec; --add-ink: #145c3c; --del: #fbeaea; --del-ink: #8f2b24; --chip: #efeee9;
+    --radius: 14px; --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111214; --paper: #18191c; --ink: #eceae6; --dim: #a4a7ad; --faint: #767a82; --line: #2a2c30;
+      --corrected: #a28bff; --broke: #ff7a70; --slow: #f0b44c; --worked: #4fd197; --accent: #eceae6;
+      --add: #12301f; --add-ink: #8fe0b4; --del: #3a1714; --del-ink: #ffb1aa; --chip: #232428;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 56px 24px 120px; }
+  .eyebrow { font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
+  h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.02; letter-spacing: -.035em; margin: 14px 0 16px; font-weight: 650; }
+  h2 { font-size: 22px; letter-spacing: -.015em; margin: 0 0 16px; font-weight: 650; }
+  .lead { font-size: 18px; color: var(--dim); max-width: 64ch; margin: 0; }
+  section { margin-top: 64px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 36px; }
+  .stat { background: var(--paper); padding: 18px 20px; }
+  .stat b { display: block; font-size: 30px; letter-spacing: -.03em; font-weight: 650; }
+  .stat span { font-size: 12px; color: var(--faint); }
+  .kinds { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+  .kind { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; border-top: 3px solid var(--c); }
+  .kind h3 { margin: 0 0 10px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--c); }
+  .kind ul { margin: 0; padding-left: 18px; color: var(--ink); }
+  .kind li { margin: 6px 0; font-size: 14px; }
+  .kind .empty { color: var(--faint); font-size: 14px; }
+  .toolbar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 0; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); }
+  .filter { font: inherit; font-size: 13px; border: 1px solid var(--line); background: var(--paper); color: var(--dim); border-radius: 999px; padding: 6px 12px; cursor: pointer; transition: background .16s var(--ease), color .16s var(--ease), border-color .16s var(--ease); }
+  .filter[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .cards { display: grid; gap: 14px; }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; transition: border-color .16s var(--ease), box-shadow .24s var(--ease); }
+  .card.is-picked { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .card-head { display: flex; gap: 14px; align-items: flex-start; }
+  .pick { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--accent); flex: none; cursor: pointer; }
+  .card h4 { margin: 0; font-size: 17px; letter-spacing: -.01em; font-weight: 620; }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip { font: 500 11.5px/1 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--chip); color: var(--dim); padding: 5px 8px; border-radius: 6px; }
+  .chip.id { background: var(--accent); color: var(--bg); }
+  .chip.ev { cursor: help; }
+  .why { margin: 14px 0 12px; color: var(--dim); }
+  .path { font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--faint); word-break: break-all; }
+  .diff { display: grid; gap: 6px; margin-top: 10px; }
+  .diff pre { margin: 0; padding: 10px 12px; border-radius: 8px; white-space: pre-wrap; word-break: break-word; font: 12.5px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .del { background: var(--del); color: var(--del-ink); }
+  .add { background: var(--add); color: var(--add-ink); }
+  .opts { margin: 12px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+  .opts li { border: 1px dashed var(--line); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
+  .opts li.rec { border-style: solid; border-color: var(--corrected); }
+  .ev-list { display: grid; gap: 8px; }
+  .ev-item { display: grid; grid-template-columns: 56px 1fr; gap: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 14px; }
+  .ev-item .src { font-size: 12px; color: var(--faint); }
+  .watch li { color: var(--dim); margin: 6px 0; }
+  .approve { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; gap: 10px; align-items: center; background: var(--accent); color: var(--bg); padding: 10px 12px 10px 18px; border-radius: 999px; box-shadow: 0 10px 40px rgba(0,0,0,.25); font-size: 14px; max-width: calc(100vw - 32px); }
+  .approve[hidden] { display: none; }
+  .newtag { font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--add-ink); background: var(--add); padding: 5px 8px; border-radius: 6px; justify-self: start; }
+  .approve button { font: inherit; font-size: 13px; border: 0; border-radius: 999px; padding: 7px 14px; background: var(--bg); color: var(--ink); cursor: pointer; }
+  .approve code { font: 12.5px ui-monospace, SFMono-Regular, Menlo, monospace; opacity: .9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  @media (max-width: 640px) { .wrap { padding-top: 36px; } .approve { width: calc(100vw - 32px); justify-content: space-between; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main class="wrap" id="app" aria-live="polite"></main>
+<div class="approve" id="approve" hidden>
+  <span>Reply in chat with:</span><code id="approve-text"></code><button type="button" id="copy">Copy</button>
+</div>
+
+<!-- The retro fills ONLY this block (see references/proposals.md). -->
+<script type="application/json" id="retro-data">
+{
+  "project": "Immersive card-story clone (/kpr)",
+  "date": "2026-10-03",
+  "summary": "A one-film scroll page where painted 3D scenes live inside notched cards that lean, turn and hand off to each other, plus a barcode-and-logo opening. Seven rounds of fine-tuning taught one big lesson: a card is a mask (the frame moves, the picture stays upright and has its own parallax), and everything that changes together should move on one curve.",
+  "stats": [
+    { "label": "Designer corrections", "value": 12 },
+    { "label": "Breaks", "value": 7 },
+    { "label": "Slow spots", "value": 4 },
+    { "label": "Worth keeping", "value": 10 },
+    { "label": "Proposals", "value": 14 }
+  ],
+  "evidence": [
+    { "id": "E1", "kind": "corrected", "source": "conversation · round 2, item 1", "text": "The hero needed real depth: layers moving at different speeds. The reference's files turned out to be 3D scenes of painted planes, not flat images." },
+    { "id": "E2", "kind": "corrected", "source": "conversation · round 2 item 2, then round 4 item 2", "text": "Asked twice how the picture relates to its card. Final answer: the card is only a mask; the picture stays upright with its own scroll and mouse parallax." },
+    { "id": "E3", "kind": "corrected", "source": "conversation · round 2 items 4–5", "text": "One card should turn and reveal the next scene on its back, seamlessly; cards that shouldn't show a back simply vanish past edge-on." },
+    { "id": "E4", "kind": "corrected", "source": "conversation · round 3 item 2", "text": "Pointer parallax should rotate (tilt/flip) things, not slide them; frame and layers at different speeds. Rounder corners, including the obtuse ones." },
+    { "id": "E5", "kind": "corrected", "source": "conversation · round 3 item 8, round 4 item 3, round 6 item 1", "text": "Three times: when cards hand off or grow, scale, position and rotation must change at the same time on one curve, not one after another." },
+    { "id": "E6", "kind": "corrected", "source": "conversation · round 3 item 3 + loader recording", "text": "The loader should hand off into an opening: barcode, logo building, a slit opening into the hero card, letters turning white and breaking apart." },
+    { "id": "E7", "kind": "corrected", "source": "conversation · round 4 item 1, round 5 item 1", "text": "Some sections took too much scrolling; the designer asked for shorter scroll in specific acts and for the last act to leave while the footer slides up." },
+    { "id": "E8", "kind": "corrected", "source": "conversation · round 4 item 4, round 5 item 2", "text": "The cut-corner button: the cut needs its own border line, and on hover it should morph smoothly into a rounded corner while the fill changes at once." },
+    { "id": "E9", "kind": "corrected", "source": "conversation · round 4 item 6, round 5 item 4", "text": "Big story headings: fade in line by line mapped to the scroll, reverse on the way up, no separate timed exit." },
+    { "id": "E10", "kind": "corrected", "source": "conversation · round 5 item 3", "text": "While a card shrinks and turns away, the painting behind it must stay still, and the turn must keep one direction around the screen centre." },
+    { "id": "E11", "kind": "corrected", "source": "conversation · round 6 item 2", "text": "The colour pass during a transition should be a gentle pink/purple glow, not a white wash." },
+    { "id": "E12", "kind": "corrected", "source": "conversation · round 7 (screenshot)", "text": "A faint white outline around a card at rest." },
+    { "id": "E13", "kind": "broke", "source": "conversation · round 3, orange scene", "text": "Resetting the camera pose before the animation mixer froze the story camera: the mixer skips writing values it thinks haven't changed." },
+    { "id": "E14", "kind": "broke", "source": "conversation · round 7", "text": "The faint outline came from an edge-rim effect whose width was 1e-16 instead of 0: smoothstep with a near-zero width painted the anti-aliased pixels white." },
+    { "id": "E15", "kind": "broke", "source": "conversation · round 4 item 4", "text": "A clip-path cut corner also cut the border away, so the diagonal had no line." },
+    { "id": "E16", "kind": "broke", "source": "conversation · round 5 item 4 (measured)", "text": "A scroll-mapped line fade finished while the lines were still below the screen (opacity 0.98 at 1003px on a 1036px window), so it was never seen." },
+    { "id": "E17", "kind": "broke", "source": "conversation · round 2", "text": "Gallery cards with one face rendered grey: they spun past ±π and the face index pointed past the end of the list." },
+    { "id": "E18", "kind": "slow", "source": "conversation · rounds 2 and 4", "text": "A broad process kill stopped the dev server once; later the designer's own server on port 3000 blocked port 3100 and the tools had to be re-pointed." },
+    { "id": "E19", "kind": "slow", "source": "conversation · round 3", "text": "Scripted text edits matched the wrong anchor twice (duplicated half a file, deleted a block); caught by type-check and lint." },
+    { "id": "E20", "kind": "slow", "source": "conversation · round 2", "text": "A loader-to-hero gap: half a second of blank white before the opening started, until the opening began during the loader's fade." },
+    { "id": "E21", "kind": "slow", "source": "conversation · round 4", "text": "A cleanup command was blocked by a safety check (unguarded shell variable in rm); worked around by writing into a fresh folder." },
+    { "id": "E22", "kind": "worked", "source": "conversation · round 2", "text": "Each painting rendered from its own camera into a texture; only scenes on screen render, plus the next face when a card is near edge-on. 60fps at 4× CPU slowdown." },
+    { "id": "E23", "kind": "worked", "source": "conversation · round 4", "text": "Sampling the picture in screen space (gl_FragCoord inside the card's upright rect) made the card a pure mask in one shader change." },
+    { "id": "E24", "kind": "worked", "source": "conversation · round 3", "text": "Folder-tab card shape as an SDF: rounded box minus a stepped notch, joints rounded with a smooth max capped by the notch depth." },
+    { "id": "E25", "kind": "worked", "source": "conversation · round 4", "text": "A scroll-to-time warp (piecewise knots + inverse) shortened three acts without retiming any animation; nav jumps and test tools used the inverse." },
+    { "id": "E26", "kind": "worked", "source": "conversation · rounds 3–5", "text": "Measuring the reference screenshot's pixels (card bounds, rules, type height) gave exact layout values instead of eyeballing." },
+    { "id": "E27", "kind": "worked", "source": "conversation · all rounds", "text": "Contact sheets of the reference recording (ffmpeg tile) and side-by-side sheets at the same moments made every mismatch obvious." },
+    { "id": "E28", "kind": "worked", "source": "conversation · rounds 2–4", "text": "Screenshot pairs with the pointer at opposite corners proved parallax and tilt objectively." },
+    { "id": "E29", "kind": "worked", "source": "conversation · round 2", "text": "14 original gallery portraits generated four at a time and cut with the reference cards' own alpha masks, so they matched the set." },
+    { "id": "E30", "kind": "worked", "source": "conversation · round 2", "text": "Tiny debug views (one scene from its own camera, a flipbook laid out frame by frame) identified what each unknown asset was before wiring it." },
+    { "id": "E31", "kind": "worked", "source": "conversation · round 5", "text": "Capturing a hover every 25 ms proved the corner morph was gradual, and showed the first curve finished too fast." },
+    { "id": "E32", "kind": "broke", "source": "health pass", "text": "quality-check is still a placeholder: TODO text, no 'use when' trigger, no 'Checked on' date." },
+    { "id": "E33", "kind": "worked", "source": "memory · aim-obys, landonorris, kpr clone notes", "text": "This is the third reference clone built the same way (recording + saved HTML + assets → matched page); the workflow repeats every time." }
+  ],
+  "findings": {
+    "corrected": [
+      "A card is a mask: its frame leans and turns, the picture stays upright with its own parallax (E2, E10)",
+      "Pointer parallax turns things rather than sliding them; frame and picture at different speeds (E4)",
+      "Things that change together move together on one curve: size, position, rotation (E5)",
+      "Layered depth came from real 3D scenes of painted planes (E1); one card can reveal the next scene on its back (E3)",
+      "Opening after the loader, shorter scroll for some acts, the button's corner morph, scroll-mapped headings, a glow instead of a white wash (E6–E9, E11)"
+    ],
+    "broke": [
+      "Animation mixer skipped a pose I had reset, freezing the camera (E13)",
+      "A near-zero effect width drew a faint outline (E12, E14)",
+      "clip-path cut away the border on the cut corner (E15)",
+      "A scroll fade finished before the text was on screen (E16)",
+      "Single-face cards spinning past ±π looked up a face that didn't exist (E17)",
+      "quality-check skill is an empty placeholder (E32)"
+    ],
+    "slow": [
+      "Dev-server conflicts: a broad kill, then the designer's own server on another port (E18)",
+      "Scripted edits matched the wrong place twice (E19)",
+      "A blank beat between loader and opening (E20); a blocked cleanup command (E21)"
+    ],
+    "worked": [
+      "Render-to-texture paintings rendered only when visible (E22); screen-space sampling for masks (E23); SDF folder-tab shapes (E24)",
+      "Scroll-to-time warp (E25)",
+      "Reference matching: pixel measurements, contact sheets, side-by-side sheets, pointer pairs, 25 ms hover captures, asset debug views (E26–E28, E30, E31), the third clone done this way (E33)",
+      "Generated art cut with the reference's own masks (E29)"
+    ]
+  },
+  "proposals": [
+    {
+      "id": "R1", "kind": "technique", "size": "L",
+      "target": "plugins/3d-web/skills/3d-web/references/painted-cards.md (new) + SKILL.md decision table and reference list",
+      "section": "new reference file",
+      "title": "Painted scenes inside cards (cards as masks, multi-face cards, tab shapes)",
+      "why": "The page's signature look came from five techniques that took seven rounds to get right; a future card-based immersive page can start from them.",
+      "before": "(nothing about cards that hold scenes; the decision table has no row for it)",
+      "after": "New file, 5 short sections with minimal code: 1) a layered painting = a small scene of planes at depths, rendered from its own camera into a texture; render only cards on screen (+ the next face near edge-on). 2) The card is a mask: sample the picture in screen space inside the card's upright rect, so lean/turn/tilt move only the shape; an optional fixed 'picture frame' keeps the painting still while the mask shrinks or turns. 3) Pointer parallax: the inner camera orbits a pivot (turns, not slides), travel ÷ zoom^0.65; flat images slide slightly; the frame leans slower than the picture. 4) One card, several faces: faces in turning order, swap the hidden face every half turn, keep turning one way; one-sided cards vanish past 90°. 5) Folder-tab shape as an SDF with joints rounded by a smooth max capped by the notch depth. Decision-table row: 'Cards / windows that hold a 3D or layered scene → render-to-texture + screen-space mask (references/painted-cards.md)'.",
+      "evidence": ["E1", "E2", "E3", "E4", "E10", "E22", "E23", "E24"], "options": null
+    },
+    {
+      "id": "R2", "kind": "answer", "size": "S",
+      "target": "plugins/3d-web/skills/3d-web/SKILL.md",
+      "section": "Sang's answers",
+      "title": "Taste: cards are masks, pointer parallax turns",
+      "why": "You corrected this twice; writing it down means the next project starts there.",
+      "before": "Mood/light, model source and interaction are asked per project.",
+      "after": "Add: 'Scenes inside cards/windows: the card is a mask (frame leans and turns, the picture stays upright with its own scroll and pointer parallax). Pointer parallax turns the view (orbit/tilt) rather than sliding it, with the frame slower than the picture.'",
+      "evidence": ["E2", "E4", "E10"],
+      "options": [
+        { "label": "Yes, as the default for card/window scenes", "recommended": true },
+        { "label": "Keep it in the technique file only; ask per project" },
+        { "label": "Skip" }
+      ]
+    },
+    {
+      "id": "R3", "kind": "pitfall", "size": "S",
+      "target": "plugins/3d-web/skills/3d-web/references/pitfalls.md",
+      "section": "Found while building demos",
+      "title": "Animation mixer skips unchanged values",
+      "why": "A camera move stopped working after I added pointer movement on top; it looked like a scroll bug.",
+      "before": "(new row)",
+      "after": "| Resetting a pose before `mixer.setTime()` each frame | The clip's camera froze at one spot | The mixer only writes values that changed since its last write; add your offsets after `setTime`, then undo them after the render |",
+      "evidence": ["E13"], "options": null
+    },
+    {
+      "id": "R4", "kind": "pitfall", "size": "S",
+      "target": "plugins/3d-web/skills/3d-web/references/pitfalls.md",
+      "section": "Found while building demos",
+      "title": "Near-zero widths in smoothstep draw outlines",
+      "why": "A faint white line appeared around a card at rest and was hard to find.",
+      "before": "(new row)",
+      "after": "| An effect width driven by `sin(angle)` that should be 0 | Faint outline on anti-aliased edges (width was 1e-16, not 0) | Treat widths under ~0.25px as off (`if (w > 0.25)`) and clamp the distance you feed `smoothstep` |",
+      "evidence": ["E12", "E14"], "options": null
+    },
+    {
+      "id": "R5", "kind": "pitfall", "size": "S",
+      "target": "plugins/3d-web/skills/3d-web/references/pitfalls.md",
+      "section": "Found while building demos",
+      "title": "Face index past ±π",
+      "why": "Gallery cards went grey while spinning.",
+      "before": "(new row)",
+      "after": "| A card picks its face from `round(|rotY| / π)` and spins freely | Grey cards past half a turn (index beyond the face list) | Single-face cards always show face 0; multi-face cards clamp or wrap the index |",
+      "evidence": ["E17"], "options": null
+    },
+    {
+      "id": "R6", "kind": "technique", "size": "S",
+      "target": "plugins/3d-web/skills/3d-web/references/materials-shaders.md",
+      "section": "material table / glow",
+      "title": "A colour pass that glows instead of fading",
+      "why": "Mixing toward a colour reads as a white/grey fade; you wanted a gentle glow.",
+      "before": "(new line under the glow row)",
+      "after": "Transition glow over a picture: screen-blend toward the colour (`1 - (1 - c) * (1 - glow * k)`), slightly stronger at the edges, with k ≤ 0.4; never `mix(c, white, k)`, which reads as a fade.",
+      "evidence": ["E11"], "options": null
+    },
+    {
+      "id": "R7", "kind": "technique", "size": "M",
+      "target": "plugins/web-motion/skills/web-motion/references/effects/one-film-scroll.md",
+      "section": "Around the timeline (new bullets)",
+      "title": "Scroll warp: shorten acts without retiming",
+      "why": "You asked twice for less scrolling in specific acts; a warp did it in minutes and kept every animation intact.",
+      "before": "Units = screens … the track is TOTAL + 1 screens tall.",
+      "after": "Add: 'Scroll warp: keep every window in film screens and map scroll → film time with a few knots [film t, scroll s] (linear between). Shorten an act by giving it less scroll. Track = last knot's scroll + 1; jump links and test tools go through the inverse. Let the film run on for one screen past the end so the last act can leave while the footer slides in.' + checklist line 'Acts that feel long are shortened with the warp, not by retiming'.",
+      "evidence": ["E7", "E25"], "options": null
+    },
+    {
+      "id": "R8", "kind": "answer", "size": "S",
+      "target": "plugins/web-motion/skills/web-motion/SKILL.md",
+      "section": "Sang's answers",
+      "title": "Taste: things that change together move together",
+      "why": "You corrected sequential moves three times (translate then scale, enter then grow, out then in).",
+      "before": "(new answer)",
+      "after": "'Compound moves happen at once: when an element changes size, position and rotation, and when two elements hand off, one curve drives all of it. No “move, then scale”.'",
+      "evidence": ["E5"],
+      "options": [
+        { "label": "Yes, everywhere", "recommended": true },
+        { "label": "Only on immersive / one-film pages" },
+        { "label": "Skip" }
+      ]
+    },
+    {
+      "id": "R9", "kind": "answer", "size": "S",
+      "target": "plugins/web-motion/skills/web-motion/SKILL.md",
+      "section": "Sang's answers (scroll scenes line)",
+      "title": "Taste: big story headings follow the scroll",
+      "why": "You asked for this on two headings; today's default is a timed rising reveal.",
+      "before": "Signature heading reveal: lines rising from a mask, one after another.",
+      "after": "Add to the scroll-scenes answer: 'On one-film / scroll-story pages, big headings fade in line by line mapped to the scroll (each line by its position on screen) and rewind on the way up; no timed exit.'",
+      "evidence": ["E9", "E16"],
+      "options": [
+        { "label": "Yes, for one-film / scroll-story pages", "recommended": true },
+        { "label": "Keep timed reveals as the default; ask per project" },
+        { "label": "Skip" }
+      ]
+    },
+    {
+      "id": "R10", "kind": "pitfall", "size": "S",
+      "target": "plugins/web-motion/skills/web-motion/references/pitfalls.md",
+      "section": "Scroll and smooth scrolling",
+      "title": "A scroll fade that ends off-screen",
+      "why": "The second heading's fade was never visible.",
+      "before": "(new bullet)",
+      "after": "'A scroll-mapped reveal timed by scroll progress finished while the text was still below the screen. Map each line to its own position on screen (e.g. fade from the bottom edge to 72 % height), measured once per size, not to a scroll window.'",
+      "evidence": ["E16"], "options": null
+    },
+    {
+      "id": "R11", "kind": "technique", "size": "M",
+      "target": "plugins/web-motion/skills/web-motion/references/hover-press.md",
+      "section": "Button (new subsection 'Cut-corner button')",
+      "title": "Cut-corner button that morphs on hover",
+      "why": "The cut corner lost its line with clip-path, and the hover needed a smooth corner change.",
+      "before": "(new subsection)",
+      "after": "Short recipe: draw the outline as one SVG path at the button's real size (ResizeObserver), corner as a cubic whose control points interpolate between a straight 45° line and a quarter circle (k 1 → 0); tween k on hover (~0.5 s in-out); fill and text colour switch instantly; focus gets the same state. Note: `clip-path` removes the border along the cut.",
+      "evidence": ["E8", "E15", "E31"], "options": null
+    },
+    {
+      "id": "R12", "kind": "technique", "size": "M",
+      "target": "plugins/page-transitions/skills/page-transitions/references/page-loader.md",
+      "section": "new variant after 'the hand-over loader'",
+      "title": "Variant: loader → opening sequence",
+      "why": "The loader handing off into a short logo opening is a strong first impression, and the blank beat between them was easy to miss.",
+      "before": "(new variant)",
+      "after": "'The loader only clears the screen; an opening plays: a pattern wipe fills the screen while the wordmark builds in masked pieces left to right, a slit opens into the hero card, the wordmark turns white over the picture (a white copy clipped to the opening card) and breaks apart, then the page text arrives. Start the opening while the loader's last details fade (no blank beat). Once per session; reduced motion skips it.'",
+      "evidence": ["E6", "E20"], "options": null
+    },
+    {
+      "id": "R13", "kind": "new-skill", "size": "L",
+      "target": "plugins/reference-match/ (new skill, plugin.json, marketplace entry, README row)",
+      "section": "new skill",
+      "title": "New skill: reference-match (rebuild a page from a recording)",
+      "why": "Three clones now used the same workflow by hand; a skill makes the next one faster and more exact.",
+      "before": "(no owner: parts are scattered across 3d-web, quality-check and memory)",
+      "after": "Description: 'Use when rebuilding or matching a page from a screen recording, saved HTML and assets.' Rules: 1) Measure, never eyeball: layout values come from pixels of the reference (card bounds, rules, type height, in the page's own unit). 2) After every change, compare side by side at the same moment (contact sheets from the recording, screenshots at the same film time, pointer pairs for parallax, fast captures for hover). 3) Identify every asset before wiring it (debug views for scenes, sprite sheets, textures). First reference file: the toolkit (ffmpeg tile sheets, a Playwright screenshot script with film time and pointer options, a pixel-measuring snippet), plus 'generated art cut with the reference's own masks'.",
+      "evidence": ["E26", "E27", "E28", "E29", "E30", "E31", "E33"], "options": null
+    },
+    {
+      "id": "R14", "kind": "memory", "size": "S",
+      "target": "memory/design-skills-repo.md (thesang-port line)",
+      "section": "thesang-port dev server",
+      "title": "Use your running dev server; never kill broadly",
+      "why": "Twice the dev server got in the way: one I stopped by accident, one of yours on another port.",
+      "before": "Its dev server on port 3100 may already be running from another chat.",
+      "after": "'Your own dev server may already be running (seen on port 3000): check which port answers and reuse it; never stop processes by a broad name pattern.'",
+      "evidence": ["E18"], "options": null
+    }
+  ],
+  "watch": [
+    "quality-check is still a placeholder (TODO text, no trigger, no date). Not a lesson from this page; worth building in its own session (E32).",
+    "Scripted find-and-replace edits matched the wrong anchor twice; caught by type-check (E19). Mine to watch, not a skill rule.",
+    "rm with an unguarded shell variable is blocked by a safety check; use \"${D:?}\" (E21). Environment detail.",
+    "Hidden preview pane and GPU flags for headless screenshots are already covered in 3d-web pitfalls and the earlier configurator list."
+  ]
+}
+
+</script>
+
+<script>
+(() => {
+  const data = JSON.parse(document.getElementById('retro-data').textContent);
+  const app = document.getElementById('app');
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const KINDS = [['corrected', 'Corrected', 'What the designer changed'], ['broke', 'Broke', 'Errors and false “done”'], ['slow', 'Slow', 'Retries, waits, detours'], ['worked', 'Worked', 'Worth keeping']];
+  const evById = Object.fromEntries((data.evidence || []).map((e) => [e.id, e]));
+  const skillOf = (p) => (p.target || '').match(/plugins\/([^/]+)/)?.[1] || (p.kind === 'memory' ? 'memory' : p.kind === 'project-note' ? 'project notes' : 'other');
+  const skills = [...new Set((data.proposals || []).map(skillOf))];
+  const picked = new Set();
+  let filter = 'all';
+
+  const findings = KINDS.map(([k, label, hint]) => {
+    const items = data.findings?.[k] || [];
+    return `<div class="kind" style="--c: var(--${k})"><h3>${label}</h3>${items.length ? `<ul>${items.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>` : `<p class="empty">Nothing found. (${hint})</p>`}</div>`;
+  }).join('');
+
+  const card = (p) => {
+    const ev = (p.evidence || []).map((id) => `<span class="chip ev" title="${esc(evById[id]?.text || '')}">${esc(id)}</span>`).join('');
+    const opts = Array.isArray(p.options) && p.options.length ? `<ul class="opts">${p.options.map((o) => `<li class="${o.recommended ? 'rec' : ''}">${esc(o.label)}${o.recommended ? ' · recommended' : ''}${o.description ? ` — <span class="path">${esc(o.description)}</span>` : ''}</li>`).join('')}</ul>` : '';
+    const isNew = !p.before || /^\((new|not set)/i.test(p.before);
+    const diff = p.before || p.after ? `<div class="diff">${isNew ? `<span class="newtag">${esc(p.before || '(new)').replace(/[()]/g, '')}</span>` : `<pre class="del">${esc(p.before)}</pre>`}${p.after ? `<pre class="add">${esc(p.after)}</pre>` : ''}</div>` : '';
+    return `<article class="card" data-id="${esc(p.id)}" data-skill="${esc(skillOf(p))}">
+      <div class="card-head">
+        <input class="pick" type="checkbox" aria-label="Select ${esc(p.id)}" data-pick="${esc(p.id)}" />
+        <div style="min-width:0">
+          <h4>${esc(p.title)}</h4>
+          <div class="meta"><span class="chip id">${esc(p.id)}</span><span class="chip">${esc(p.kind)}</span><span class="chip">size ${esc(p.size || 'S')}</span><span class="chip">${esc(skillOf(p))}</span>${ev}</div>
+        </div>
+      </div>
+      <p class="why">${esc(p.why)}</p>
+      <div class="path">${esc(p.target || '')}${p.section ? ' → ' + esc(p.section) : ''}</div>
+      ${diff}${opts}
+    </article>`;
+  };
+
+  const render = () => {
+    const list = (data.proposals || []).filter((p) => filter === 'all' || skillOf(p) === filter);
+    app.innerHTML = `
+      <div class="eyebrow">Skill retro · ${esc(data.date)}</div>
+      <h1>${esc(data.project)}</h1>
+      <p class="lead">${esc(data.summary)}</p>
+      ${data.stats?.length ? `<div class="stats">${data.stats.map((s) => `<div class="stat"><b>${esc(s.value)}</b><span>${esc(s.label)}</span></div>`).join('')}</div>` : ''}
+      <section><h2>What happened</h2><div class="kinds">${findings}</div></section>
+      <section>
+        <h2>Proposed changes <span class="path">(${(data.proposals || []).length})</span></h2>
+        <div class="toolbar" role="toolbar" aria-label="Filter by skill">
+          ${['all', ...skills].map((s) => `<button class="filter" type="button" aria-pressed="${filter === s}" data-filter="${esc(s)}">${esc(s)}</button>`).join('')}
+        </div>
+        <div class="cards">${list.map(card).join('') || '<p class="empty">No proposals.</p>'}</div>
+      </section>
+      ${data.watch?.length ? `<section class="watch"><h2>Watch (not promoted yet)</h2><ul>${data.watch.map((w) => `<li>${esc(w)}</li>`).join('')}</ul></section>` : ''}
+      <section><h2>Evidence</h2><div class="ev-list">${(data.evidence || []).map((e) => `<div class="ev-item"><span class="chip" style="align-self:start;background:var(--${esc(e.kind)});color:var(--bg)">${esc(e.id)}</span><div>${esc(e.text)}<div class="src">${esc(e.kind)} · ${esc(e.source)}</div></div></div>`).join('')}</div></section>`;
+    app.querySelectorAll('[data-pick]').forEach((el) => {
+      el.checked = picked.has(el.dataset.pick);
+      el.closest('.card').classList.toggle('is-picked', el.checked);
+    });
+  };
+
+  const sync = () => {
+    const bar = document.getElementById('approve');
+    const ids = (data.proposals || []).map((p) => p.id).filter((id) => picked.has(id));
+    bar.hidden = !ids.length;
+    document.getElementById('approve-text').textContent = `Apply ${ids.join(', ')}`;
+  };
+
+  app.addEventListener('change', (e) => {
+    const id = e.target.dataset?.pick;
+    if (!id) return;
+    e.target.checked ? picked.add(id) : picked.delete(id);
+    e.target.closest('.card').classList.toggle('is-picked', e.target.checked);
+    sync();
+  });
+  app.addEventListener('click', (e) => {
+    const f = e.target.dataset?.filter;
+    if (!f) return;
+    filter = f;
+    render();
+  });
+  document.getElementById('copy').addEventListener('click', async (e) => {
+    try { await navigator.clipboard.writeText(document.getElementById('approve-text').textContent); e.target.textContent = 'Copied'; setTimeout(() => (e.target.textContent = 'Copy'), 1400); } catch { /* clipboard blocked: select the text instead */ }
+  });
+  document.title = `Retro · ${data.project}`;
+  render();
+})();
+</script>
+</body>
+</html>

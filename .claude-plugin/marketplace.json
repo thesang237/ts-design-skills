@@ -43,6 +43,11 @@
       "description": "End-of-project retrospective: gathers evidence from the conversation, memory and git, sorts it into corrected / broke / slow / worked, and proposes small, approved-only updates to your other design skills in a visual report."
     },
     {
+      "name": "reference-match",
+      "source": "./plugins/reference-match",
+      "description": "Rebuild or match a page from a reference (screen recording, saved HTML, assets): measure from pixels, compare side by side at the same moments, identify every asset before wiring it, keep the study private and the art and copy original."
+    },
+    {
       "name": "product-configurator",
       "source": "./plugins/product-configurator",
       "description": "High-end 3D product configurators for landing pages and stores, for any product: product-as-data options and rules with reasons and fixes, pricing, shareable links, stutter-free swaps, a shop-sheet panel, camera presets per part, poster-first loading, and cart, snapshot and AR hand-off."

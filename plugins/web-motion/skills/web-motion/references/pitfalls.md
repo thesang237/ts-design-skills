@@ -74,6 +74,10 @@ normal, reduced motion, and phone with 4x CPU slowdown) and by building the demo
 - CSS `animation-timeline` used without an `@supports` check. Firefox stable doesn't run it
   (2026-09), so the un-animated state must be the finished, readable one.
 - Mobile address bar resizes re-running every ScrollTrigger: `ScrollTrigger.config({ ignoreMobileResize: true })`.
+- A line-by-line fade mapped to a **scroll window** finished while the lines were still below the
+  screen (fully faded in at 1003px on a 1036px-tall window), so nobody saw it. Map each line to its
+  **own position on screen** instead (fade from the bottom edge to about 72 % of the height), measured
+  once per viewport size plus the known scroll offset, never read from layout every frame.
 
 ## Touch and hover
 

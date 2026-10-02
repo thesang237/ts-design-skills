@@ -13,6 +13,7 @@ A personal collection of design skills for [Claude Code](https://claude.com/clau
 | **product-configurator** | High-end 3D product configurators for landing pages and stores, for any product: options and compatibility rules as data (with reasons and one-click fixes), pricing, shareable links, undo and reset, stutter-free material and shape swaps, a shop-sheet panel with every state, camera presets that follow the edited part, poster-first loading and budgets, cart, snapshot and AR hand-off. Has a runnable demo (a lounge chair built in code) in `demos/product-configurator` |
 | **quality-check** | Reviewing work for consistency, accessibility and polish |
 | **create-learn-page** | Learn / breakdown pages that teach how a project works: curriculum, chapter guide, live demos with dials, flashcards and quiz, verification |
+| **reference-match** | Rebuilding or matching a page from a reference (a screen recording, saved HTML and assets): timeline from contact sheets, layout measured from pixels, every asset identified with small debug views, side-by-side comparison at the same moments, pointer and hover checks, original copy and art |
 | **skill-retro** | Run `/skill-retro` at the end of a project: evidence, then corrected / broke / slow / worked, then proposed skill updates in a visual report, saved only when approved. Sample report in `demos/skill-retro` |
 
 ## How it's organized (plain-language version)

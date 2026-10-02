@@ -36,6 +36,12 @@ Never pick these silently. Ask, then write the answers down in the project.
 - **Stagger 70ms between items**; a group never takes longer than about 0.5s to start its last item.
 - **Hover is subtle by default** (colour, opacity, a 2px lift, press at 0.97). Expressive hovers (image zoom, sliding details) **only on showcase/work cards**.
 - **Scroll scenes** (added 2026-09-30): a section's heading, text and UI enter with the scroll, hold still, then exit. Layout, hold length and scroll-up behaviour (rewind, play back, stay) are chosen per project; defaults are pinned, medium hold, rewind.
+- **Things that change together move together** (added 2026-10-03): when an element changes size,
+  position and rotation, and when two elements hand off (one leaves as the other arrives), **one
+  curve drives all of it**. Never "move, then scale".
+- **Scroll-story headings follow the scroll** (added 2026-10-03): on one-film and scroll-story pages,
+  big headings fade in **line by line mapped to the scroll** (each line by its own position on
+  screen) and rewind on the way up; no separate timed exit.
 - **Smooth scrolling only for editorial or portfolio sites**, opt-in per project, wheel only, off for reduced motion, never for apps or dashboards.
 - **Immersive-site mode** (added 2026-09-30): only for WebGL / scroll-storytelling sites the designer
   calls immersive. It allows a stronger arrival curve, longer text reveals over 3D, and one playful

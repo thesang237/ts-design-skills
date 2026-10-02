@@ -30,6 +30,27 @@ showcase/work cards. All of these are CSS transitions: they retarget smoothly wh
 Never scale above 1 on hover for buttons in dense UI (it pushes against neighbours visually).
 A 1 to 2px lift (`translateY(calc(var(--lift) * -1))`) is the maximum.
 
+### Cut-corner button (outline with a 45° corner that rounds on hover)
+
+For showcase sites with a notched / cut-corner language. **`clip-path` can't do it**: it cuts the
+border away along the diagonal, so the cut has no line. Draw the outline as one SVG path at the
+button's real size instead, and morph only the corner:
+
+```ts
+// k = 1: a straight 45° cut of size `cut`; k = 0: a normal corner of radius r (quarter circle)
+function outline(w: number, h: number, r: number, cut: number, k: number) {
+  const o = 0.5, W = w - o, H = h - o, c = r + (cut - r) * k, m = (a: number, b: number) => a + (b - a) * k
+  const kap = 0.552 * c   // circle approximation for the rounded end state
+  return `M${o + r},${o} H${W - r} Q${W},${o} ${W},${o + r} V${H - c} ` +
+    `C${m(W, W - c / 3)},${m(H - c + kap, H - (2 * c) / 3)} ${m(W - c + kap, W - (2 * c) / 3)},${m(H, H - c / 3)} ${W - c},${H} ` +
+    `H${o + r} Q${o},${H} ${o},${H - r} V${o + r} Q${o},${o} ${o + r},${o} Z`
+}
+```
+
+- Size the SVG with a `ResizeObserver` (viewBox = the button's box); stroke 1px with `vector-effect: non-scaling-stroke`.
+- Hover / focus: tween `k` 1 → 0 (about 0.5s, in-out) and redraw on update; **fill and text colour switch at once** (no colour transition), the stroke takes the fill colour.
+- Check it with captures every ~25ms after hovering: the corner should pass through in-between shapes, not jump.
+
 ## Link underline (draws in, leaves forward)
 
 ```css

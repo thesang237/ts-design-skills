@@ -241,6 +241,29 @@ tl.to(progress, { p: 99.9, duration: 3.75, ease: 'none', onUpdate: () => setLott
   .set(loader, { display: 'none' }, 4.5)
 ```
 
+## Variant: loader → opening sequence (the logo opens into the hero)
+
+For immersive / WebGL showcase pages. The loader (real progress, sound choice) only **clears the
+screen**; a short opening then plays on its own clock and hands over to the hero:
+
+1. A full-screen pattern wipe (a pre-rendered sprite sheet of bars and crosses works well) fills the
+   white page.
+2. The wordmark **builds left to right in pieces**: its path is masked by many small slanted rects,
+   each switching on at its own seeded moment (left pieces first).
+3. A **thin slit opens in the middle** and widens into the hero card (the hero picture, already
+   rendered behind), then the card opens to full screen.
+4. Over the picture the wordmark turns **white**: a white copy of it, clipped (`clip-path: inset(…)`)
+   to the opening card's rect each frame, while the black copy stays outside it.
+5. The letters **break apart** (pieces switch off in a different seeded order) and the page's own
+   text arrives.
+
+- About 4–4.5s; once per session; a click skips it; reduced motion skips straight to the hero.
+- **Start the opening while the loader's last details are still fading** (about 0.2s into its exit).
+  Waiting for the loader to finish left a half-second of blank white.
+- The scroll stays locked until the hero text has arrived.
+- Old and new content are never both on screen: the pattern covers the loader, and the hero only
+  appears inside the opening card.
+
 ## Measured in the demo (production build; intro mode, 1400ms)
 
 | Check | Result |

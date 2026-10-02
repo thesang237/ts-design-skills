@@ -11,6 +11,11 @@ Start from the simplest thing that looks right; write a shader only for what mat
 | Glass, gems, clear coat, fabric sheen | `MeshPhysicalMaterial` | `transmission`, `thickness`, `ior`, `clearcoat`, `iridescence`, `sheen` (costly: use on one hero object) |
 | Unlit glow, UI in 3D | `MeshBasicMaterial` | colour > 1 + `toneMapped: false` for bloom |
 
+A colour pass over a picture during a transition (a flash, a tint while a card travels) should
+**glow, not fade**: screen-blend toward the colour, `c = 1 - (1 - c) * (1 - glowColour * k)`, a
+little stronger toward the edges, k ≤ 0.4 at the peak. Mixing toward white (`mix(c, white, k)`)
+reads as the picture washing out.
+
 ## 2. Patch a built-in material (keep its lighting and shadows)
 
 For "standard material, plus one idea" (grain, dissolve, wind sway) inject code with

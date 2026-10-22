@@ -80,7 +80,8 @@ boundary.
 13. **Respect the user's settings:** `prefers-reduced-motion`, `prefers-color-scheme` (and `color-scheme` set so form controls match), `prefers-contrast`, forced colours, browser zoom and text size. Use relative units for type and spacing in product UI.
 14. **Forms are wired, not painted:** a visible label bound to its input, helper text, `aria-invalid` and `aria-describedby` for errors, `:user-invalid` styling after interaction, the right `type` and `autocomplete`, 16px minimum font in inputs on phones.
 15. **Details are rules too:** optical alignment of icons and text, one icon size family, aspect-ratio boxes and colour placeholders for images, no layout shift on hover, truncation with a way to read the rest (`references/polish.md`).
-16. **No brand or client specifics** in reusable code or docs: placeholder names, copy and colours.
+16. **Grids are variables.** Columns, gutter and margin live once on `:root`; sections say "start at column N, span M". Keep hairlines on whole pixels and hover transitions on the resting state (`references/layout.md`, `references/states.md`).
+17. **No brand or client specifics** in reusable code or docs: placeholder names, copy and colours.
 
 ## Never do
 
@@ -114,6 +115,8 @@ The short list; the long one with reasons is in `references/polish.md`.
 - [ ] Reduced motion, high contrast and forced colours still show every state
 - [ ] Hover effects only under `(hover: hover)`; nothing important depends on hover
 - [ ] Only one accent, two families, three elevations in any single view
+- [ ] Grid values are shared variables; columns, hairlines and images land on whole pixels; a difference-blend or geometry check passes
+- [ ] Hover transitions are on the resting state; fixed-ratio stages have no `min-height` that overflows a phone
 - [ ] The designer's answers above are respected and written down
 
 ## Reference files

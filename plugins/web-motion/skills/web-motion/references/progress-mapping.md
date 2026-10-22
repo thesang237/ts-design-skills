@@ -101,3 +101,19 @@ onUpdate: (self) => {
 }
 ```
 Remount the caption with `key={section}` so its reveal replays cleanly.
+
+## Practical rules from a scroll-scrubbed home page
+
+- **Coalesce scroll events.** The handler only sets a flag; the update runs once in `requestAnimationFrame`.
+  Ten scroll events cost one update.
+- **One eased progress, many multipliers.** Eight tiles from different directions arrive together
+  because each uses the same progress with its own direction factor (`(dir > 0 ? p - 1 : 1 - p) * reach`).
+- **Counter-scale hairlines.** While a parent scales 2x to 1x, scale each 1px line by `1 / scale` per
+  frame so it stays a hairline.
+- **Never leave a scrubbed scene half-finished:** snap the last stretch (smooth-scroll to the end when
+  the wheel is released within ~200px) or use CSS `scroll-snap` for stepped stories.
+- **Do not cache a trigger position measured once at init.** Fonts and images move it (a 40px error was
+  found). Use IntersectionObserver, or re-measure on `load` and `resize` (`ScrollTrigger.refresh()`).
+- **Scrub designed animations, do not play them.** Tween a 0-100 progress number with GSAP and write it
+  to the Lottie frame; the designer's art then gets your ease, delay and interruption.
+

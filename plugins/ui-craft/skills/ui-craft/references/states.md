@@ -128,3 +128,12 @@ One sentence about what appears here (“Projects you create show up here.”), 
 ## Selected, current and open
 
 `aria-current="page"` for the current link, `aria-selected` for tabs and options, `aria-expanded` for disclosure triggers, `aria-pressed` for toggle buttons. The visual cue is never colour alone: a weight change, a marker, a fill.
+
+## Hover that has a way back
+
+Declare `transition` on the resting rule, never only on `:hover`. If it lives only on `:hover` the state
+animates in and snaps out, which reads as cheap. The four hover families cover most sites: **lift**
+(`transform` + colour), **wipe** (`background-size` 0 to 100%), **fill** (a layer sliding behind the
+label) and **swap** (two stacked icons, one leaves as the other arrives). Press (`:active`, scale
+about .96) and keyboard focus need the same care as hover; wrap hover in `(hover: hover) and (pointer: fine)`.
+

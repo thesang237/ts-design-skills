@@ -38,3 +38,16 @@ and by building the demo. The numbers were counted in the source and in a live b
 - A tooltip near the right edge widened the whole page on a phone. `overflow-x: clip` on the page root, and tooltips that flip.
 - The webfont shipped two weights (400, 500); asking for 600 produced a synthesised bold. `font-synthesis: none` and only ask for what ships.
 - A reset that unset `<pre>` removed code blocks' layout. Resets need an exception list (`pre`, `blockquote`, `summary`).
+
+## Found while building a long teaching page with many demos (2026-10-21)
+
+- **`aspect-ratio` plus `min-height` forced a box wider than a 375px phone** (the ratio derived the
+  width from the minimum height). Use a clamped `height` for fixed-ratio stages.
+- **Inline `<code>` with `white-space: nowrap`, and file-path chips, widened the page on phones.** Allow
+  `overflow-wrap: anywhere` and `max-width: 100%`; code blocks scroll inside their own box.
+- **A tiny type-checked page needs unused imports pruned** or the checker drowns real errors in hints.
+- **Reveal-on-scroll hid content in a paused preview.** Reveal with an IntersectionObserver but keep the
+  content readable without it (`html[data-calm]`, no-JS fallback).
+- **A teaching page does not need the site's own CSS.** Give it its own layout and tokens so the host
+  site's resets (`pre`, `blockquote`) and root font-size cannot leak in.
+

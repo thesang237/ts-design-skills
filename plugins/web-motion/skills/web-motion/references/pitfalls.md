@@ -100,3 +100,23 @@ normal, reduced motion, and phone with 4x CPU slowdown) and by building the demo
 - **Scrubbed Lottie container collapsed to 0 height** until its parent was a stretched flex column / aspect-ratio box (the SVG's `height: 100%` had nothing to resolve against).
 - **ScrollTrigger inside a demo's own scroll box** needs `scroller: box`; and the box needs `data-lenis-prevent` when a page-level smooth scroller is running.
 - **A grid cell with a 640px child kept the cell 640px wide on a phone** until `min-width: 0` was added.
+
+## Found while rebuilding a brand site and writing a guide about it (2026-10-21)
+
+- **A control driven by the ticker re-fired its own change handler**, which stopped the playback after one
+  frame. Updates the demo makes itself must be silent (`dials.set(name, value, true)`).
+- **The preview pane was hidden, so `requestAnimationFrame` never ran** and every animation check looked
+  frozen. Verify motion with a headless browser (Playwright) that has a real frame clock; use the pane
+  only for layout.
+- **An ex-Webflow tween restarted from the wrong value:** the tool captures every tween's start value when
+  its action group begins. Port it with `fromTo(start, ...)` using the value at group start.
+- **Rive and Lottie kept drawing off screen.** Pause with an IntersectionObserver (`rootMargin` ~120px so
+  they start just before appearing); count frame updates per second to prove it.
+- **A second `<canvas>` for a Rive file** changed the page height. Reuse the canvas that is already in the
+  markup.
+- **View Transitions** need the same `view-transition-name` on the element before and after the DOM change;
+  set it on the old element, run `startViewTransition`, move the name inside the callback. Keep the
+  instant swap as the fallback. Disable the root cross-fade while a shared-element morph runs.
+- **A timer equal to the CSS duration** is enough to hand over a page (`setTimeout(go, 600)`); also reload
+  on `pageshow` with `persisted` so the back button does not show a half-finished state.
+

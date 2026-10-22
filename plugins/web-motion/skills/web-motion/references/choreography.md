@@ -63,3 +63,34 @@ gsap.timeline({ defaults: { ease: 'ease.out', duration: 0.7 } })
   illustration), never long text people are reading while scrolling back up.
 - Elements already in view at load reveal on load. Elements the visitor scrolled past before the
   script was ready reveal when scrolled back to (`onEnterBack`), or are simply shown.
+
+## A load-in is one rule applied to a list (no timeline needed)
+
+A header that draws lines and then brings pieces in one after another can be pure CSS transitions
+with the delay baked into each element. One offset per kind of thing, applied by index:
+
+```js
+const animateIn = (el, delay) => {
+  el.style.transition = `opacity .7s ${delay}ms var(--ease), transform .7s ${delay}ms var(--ease), color .3s ${delay + 400}ms ease-in-out`;
+  void el.offsetHeight;                  // commit the start state, or the browser batches both writes
+  el.style.transform = 'none'; el.style.opacity = '1';
+};
+lines.forEach((el, i) => animateIn(el, i * 200));          // structure first
+pieces.forEach((el, i) => animateIn(el, i * 80 + 160));    // content second
+```
+
+Rules that made it feel designed: lines before content; one step size per kind (200 ms lines, 80 ms
+pieces); the whole thing ends in about 1.5 s; white-on-dark pieces take their real colour 400 ms after
+they start; `.no-transitions` for 100 ms after a resize; skipped for reduced motion. Cap a stagger's
+*total* (GSAP `amount`), not its step.
+
+## Hover and gesture lifecycle
+
+- Put the `transition` on the **resting** state. A transition declared only on `:hover` animates in
+  and snaps out.
+- When one gesture drives several engines (CSS, a tween, a Lottie, a Rive input), start them from one
+  event handler and keep the tweens in **one timeline** so leaving is a single `kill()`.
+- Capture a tween's start value at the moment the gesture begins (`fromTo` with the live value), or a
+  delayed second tween restarts from a stale number.
+- Pointer-following (magnet): `gsap.quickTo` once, then call it; never `gsap.to` per pointer event.
+

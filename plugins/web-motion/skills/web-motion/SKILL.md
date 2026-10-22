@@ -113,6 +113,8 @@ transitions and GSAP both animate `transform` on the same element.
 19. **Scrubbed tracks are linear; timed animations get the curves.** Stagger inside a scrubbed scene is a different start position on the track, not a delay.
 20. **Swap hovers (one thing leaves, its twin arrives) belong on showcase and editorial pages**; build them with `.to()` + `overwrite` so a quick in-and-out reverses from where it is. Product UI keeps the quiet house hover.
 21. **Images arrive in two beats:** a colour placeholder already on screen, then the photo fading in (and settling) over it, with a capped stagger for groups. A pinned stage is replaced by plain stacked content on phones.
+22. **Transition on the resting state; one handle to stop a gesture.** A hover that animates in must animate out; several engines on one gesture start from one handler and live in one timeline (`references/choreography.md`).
+23. **Verify motion on a real frame clock.** A hidden preview pane pauses `requestAnimationFrame`; check play, scrub and hover with a headless browser and compare frames, not just screenshots.
 
 ## Quality checklist (run before calling it done)
 
@@ -135,6 +137,9 @@ transitions and GSAP both animate `transform` on the same element.
 - [ ] No element has a CSS and a GSAP transform at once; start states are set in GSAP
 - [ ] Images: a colour box is visible before the photo, boxes have a fixed aspect ratio (no layout shift), group stagger stays within about 0.5s, reduced motion shows photos with one short fade
 - [ ] Swap hovers reverse smoothly on a quick in-and-out and keyboard focus gets the same effect
+- [ ] A load-in finishes in about 1.5 s, total stagger capped, lines before content
+- [ ] Trigger positions are not cached from init; Lottie/Rive pause off screen and are scrubbed from a progress number
+- [ ] Animation was checked in a browser that runs frames (headless), not only in a paused preview
 - [ ] The designer's answers above are respected and written down
 
 ## Reference files

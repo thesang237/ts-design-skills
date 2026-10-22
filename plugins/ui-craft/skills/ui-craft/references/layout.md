@@ -73,3 +73,30 @@ Design with the bad data first.
 - Sticky positioning fails silently if any ancestor has `overflow: hidden | auto | scroll`; use `overflow: clip` to hide overflow without making a scroll container.
 - Dialogs lock page scroll (`overscroll-behavior: contain` on the dialog, `overflow: hidden` on the page only while open), trap focus, close on Escape and return focus.
 - A banner or toast must not cover the only way to dismiss it, or the focused control.
+
+## The grid as shared variables (pixel-perfect columns)
+
+Define the grid once on `:root` and let every section read it, so nothing drifts:
+
+```css
+:root {
+  --margin: 120px; --gutter: 24px;
+  --grid: calc(100vw - 2 * var(--margin));
+  --col: calc((var(--grid) - 11 * var(--gutter)) / 12);
+  --col-4-left: calc(var(--margin) + 3 * (var(--col) + var(--gutter)));
+  --span-6: calc(6 * var(--col) + 5 * var(--gutter));
+}
+@media (max-width: 991px) { :root { --margin: 60px; --gutter: 12px; } }
+@media (max-width: 767px) { :root { --margin: 32px; } }
+```
+
+- Margin and gutter change only at breakpoints; the column width is the fractional leftover. A
+  fractional column (`47.333px`) puts edges between device pixels and softens them: where crisp edges
+  matter, floor the column and move the leftover into the margin.
+- Hairlines: whole CSS pixels, or whole device pixels. A 1px line at `x.5` on a 1x screen is grey. A
+  scaled parent thickens its borders; counter-scale them (`scaleY(1 / scale)`).
+- Responsive **assets**, not just layout: several image widths with `srcset`, and art-directed
+  mobile variants of heavy files (a different artboard, a smaller file).
+- Prove a match with `mix-blend-mode: difference` (identical = black) at the same scroll position and
+  time, plus a numeric check of every section's `top` and `height`.
+

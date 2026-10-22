@@ -63,3 +63,13 @@ Self-host the Basis and Draco decoder files (`/public/basis`, `/public/draco`); 
 For geometric, abstract or atmospheric worlds, code beats files: tiny download, sharp at any
 resolution, every parameter tweakable. Use a seeded random so the result is always the same, and
 build heavy geometry once (not per render).
+
+## Texture manifests, bitmap decoding, workers (vanilla engines)
+
+- Preload a manifest of `path + mode` pairs before building scenes; scene code then reads textures synchronously.
+- Decode images with `ImageBitmapLoader` (`colorSpaceConversion: 'none'`, `premultiplyAlpha: 'none'`,
+  `imageOrientation: 'flipY'`, then `texture.flipY = false`).
+- Only colour textures are `SRGBColorSpace`; LUTs, noise, masks, atlases and matrix textures are raw data.
+- `KTX2Loader` returns one instance per URL: clone when the same file needs different filtering or wrapping.
+- Decode heavy geometry (Draco) in a small worker pool, transfer buffers, and terminate on dispose.
+- Fonts for in-canvas text: an MSDF atlas plus a layout step; the page keeps the same text in the DOM.

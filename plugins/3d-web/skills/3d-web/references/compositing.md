@@ -42,3 +42,21 @@ End with `#include <tonemapping_fragment>` and `#include <colorspace_fragment>`.
   few passes; good default when you don't need custom transitions.
 - WebGPU: `RenderPipeline` with TSL nodes (`pass()`, `bloom()`), see `webgpu.md`.
 - Write your own single pass (above) when transitions between worlds are the signature moment.
+
+## Sections as render targets, mixed by one composite (full-page experiences)
+
+When the page is a stack of full-screen "rooms" that you scroll through, render each room into its **own
+composer** (half-float target, colour grade) and draw a single full-screen triangle that mixes them:
+
+- **Only the one or two sections that overlap the viewport render.** Frame cost does not grow with the number of
+  rooms. A section's `isSceneVisible` flips when it enters or leaves; `onVisibilityChange` starts and stops its
+  own work (sims, audio, timelines).
+- The composite material takes `tScene1`, `tScene2`, `uProgress` (how far the second overlaps the first), and
+  scroll `velocity` (feeds chromatic aberration, noise, a diagonal "cut" edge). A detail view is a third
+  composer faded in by `uDetailProgress`; when it reaches 1 the sections stop rendering.
+- The orthographic UI scene draws last with `clear = false`, then bloom and SMAA + sRGB output.
+- Compile the composite and the intro material first, render every section once, then let the loader leave.
+- A `ScrollSection` base class: `height` (in screens), `progress` (0..1 inside it), `initialScrollAutocenter`
+  / `finalScrollAutocenter`, `autoCenter()`.
+- Bloom / SMAA from `postprocessing` can be hosted inside a three `EffectComposer` with a thin pass wrapper that
+  hands it the host's read/write buffers (dummy targets so it never resizes or disposes them).

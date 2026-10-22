@@ -48,6 +48,7 @@ Related skills (don't repeat them here):
 | Many copies of one shape | **InstancedMesh** | One draw call for thousands |
 | Thousands of moving points | GPU points (vertex shader), or GPGPU / WebGPU compute for physics | Per-point JavaScript doesn't scale |
 | A model from a 3D artist | **glTF (.glb)**, optimised with glTF Transform, loaded with Meshopt/Draco + KTX2 | Smallest download, GPU-compressed textures |
+| A full-page immersive site where the canvas *is* the page (Astro or plain HTML shell) | **Vanilla three.js engine**: one clock, scene base class, sections as render targets mixed by a composite, virtual looping scroll (`references/vanilla-engine.md`) | Several full-screen scenes per frame need explicit control of render order and targets |
 | Scroll choreography | A dials object driven by the master timeline (web-motion) | Scroll never touches three.js directly |
 | Labels next to 3D objects | HTML positioned by `vector.project(camera)` (or drei `<Html>`) | Real, accessible, crisp text |
 | Shaped cards that hold a layered or 3D picture (they lean, turn, hand off) | **Render-to-texture paintings + a screen-space mask** (`references/painted-cards.md`) | The frame moves, the picture stays upright with its own parallax |
@@ -79,6 +80,11 @@ Related skills (don't repeat them here):
 12. **Measure, don't guess**: frame times through the whole scroll, draw calls, memory after
     navigating away and back (`references/performance-tiers.md` has the script).
 13. **No brand or client assets** in reusable code or demos.
+14. **Warm up before revealing.** `compileAsync`, `initTexture` and one real render of every scene happen behind the loader; the first scroll never compiles or uploads (`references/vanilla-engine.md`).
+15. **Time-based smoothing uses the frame ratio** (`damp(t, ratio)`), never a fixed per-frame lerp: same feel at 30, 60 and 120 fps.
+16. **Probe, don't trust, GPU capabilities** (float render targets, linear float filtering), and adapt resolution at runtime with a loop that stops oscillating (`references/performance-tiers.md`).
+17. **In a multi-room experience only the one or two visible rooms render**, each into its own target, mixed by one composite (`references/compositing.md`).
+18. **Choose the renderer by what you must preserve:** keep GLSL when pixel parity matters, use TSL for new work; verify a port against the noise floor between two runs (`references/webgpu.md`).
 
 ## Quality checklist
 
@@ -93,6 +99,8 @@ Related skills (don't repeat them here):
 - [ ] Colours match the design (sRGB, tone mapping, no washed-out custom shaders)
 - [ ] Labels and UI over the canvas are real DOM, keyboard-reachable, readable on bright scenes
 - [ ] Works in Chromium, Firefox and WebKit, phone and desktop
+- [ ] Immersive builds: scenes warmed before the loader leaves (no hitch on first scroll), only visible sections render, adaptive DPR settles and stops
+- [ ] Smoothing is frame-rate independent (same speed at 60 and 120 Hz); float render targets are probed
 - [ ] The designer's answers above are respected and written down
 
 ## Reference files
@@ -108,5 +116,6 @@ Related skills (don't repeat them here):
 - `references/performance-tiers.md`: device tiers, runtime quality, budgets, the measuring script
 - `references/fallbacks.md`: support detection, poster, reduced motion, context loss
 - `references/cleanup.md`: disposal, route changes, verifying memory
+- `references/vanilla-engine.md`: a full-page vanilla three.js engine: clock phases, scene base class, warm-up, renderer settings, texture modes, workers, camera rig, pointer, GPGPU ping-pong
 - `references/webgpu.md`: when and how to move to WebGPURenderer and TSL
 - `references/pitfalls.md`: what broke, and how it was found

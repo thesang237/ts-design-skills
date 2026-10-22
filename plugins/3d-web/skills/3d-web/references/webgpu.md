@@ -52,3 +52,28 @@ R3F: `<Canvas gl={async (props) => { const r = new THREE.WebGPURenderer(props); 
 - [ ] GPGPU moved to compute, or kept on WebGL for that part
 - [ ] Tested with `forceWebGL: true` (the fallback path real visitors will get) and on Safari
 - [ ] Draw calls and frame times measured on both backends; tiers still apply
+
+## Keep GLSL or go TSL? (a measured decision)
+
+A production WebGL2 experience built from ~160 hand-written GLSL shaders, `onBeforeCompile` patches of physical
+and line materials, UBOs and MRT GPGPU was **not** moved to WebGPU: `WebGPURenderer` runs only node (TSL)
+materials, so every shader would be rewritten and pixel parity lost. Decision rule:
+
+| Situation | Choice |
+| --- | --- |
+| New work, standard materials, compute wanted | TSL + `WebGPURenderer` (WebGL2 fallback is built in) |
+| Large GLSL / `onBeforeCompile` base, goal is identical pixels | Stay on `WebGLRenderer`; port one section to TSL behind `?webgpu` as the upgrade path |
+
+How the experimental port stayed maintainable:
+- Reuse geometry, placement, per-frame logic and timelines **unchanged**; swap each GLSL material for its TSL
+  port after load. Each node material keeps the original `uniforms` record and mirrors it on every draw, so
+  timelines that write `material.uniforms.uX.value` still drive it.
+- GPGPU ping-pong of MRT float targets → one compute pass over storage buffers.
+- WebGPU has no sized points: add an instanced camera-facing quad that reads the same attribute arrays.
+- pmndrs bloom (mipmap luminance + 13-tap down, tent up) is a different look from three's UnrealBloom: port it
+  line for line if the look must match. SMAA: three's `smaa()` node and the pipeline's output transform.
+- Mirror, do not fork, the controller (scroll model, stacking, auto-centre) and keep both in sync until merged.
+- **Verify by pixels:** capture both paths with timelines seeked to the same times, scroll pinned, pointer fixed,
+  camera shake zeroed, UI hidden; compare each against the **noise floor between two runs of the same path**
+  (seeded randomness differs per load). Residual 0.1–0.3 % on silhouettes and glyph edges is normal; large
+  numbers mean a missing section.

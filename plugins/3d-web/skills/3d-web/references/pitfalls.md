@@ -41,3 +41,19 @@ slowdown) and from building 20+ teaching demos around it. Names removed.
 | "Restore" after a simulated context loss did nothing | `getExtension('WEBGL_lose_context')` returns null once the context is lost | Keep the extension object from before the loss |
 | `fresnel()` in TSL | Not a built-in node | `oneMinus(normalView.dot(positionViewDirection).abs()).pow(p)` |
 | A headless browser without GPU flags | Software rendering: meaningless frame times | `--use-angle=metal --enable-gpu --ignore-gpu-blocklist` (macOS) and check the renderer string |
+
+## Found while studying a production WebGL2 experience (2026-10-22)
+
+| Problem | How it showed up | Fix |
+| --- | --- | --- |
+| A first scroll into a new room compiled shaders | A long frame at the section change | `compileAsync` + `initTexture` + one real render of every scene before the loader leaves |
+| A mobile GPU advertised float render targets | Garbage in GPGPU particles | Render a known colour to a 1×1 float target, read it back, fall back if wrong |
+| `KTX2Loader` handed the same texture to two sampler modes | One look overwrote the other | Clone when the same file is requested in another mode |
+| Camera `matrixWorldAutoUpdate` turned off by hand (older pattern) | A frozen camera in newer three.js | Leave it on; update the rig once per drawn frame |
+| Smoothing per frame | Faster scroll and parallax at 120 Hz | `lerpFPS` / `frictionFPS` with the clock ratio |
+| Every room rendered every frame | Frame time grew with room count | Render only the one or two sections overlapping the viewport |
+| Pixel ratio uncapped with several full-screen passes | Throttling on laptops | Hard cap, then adaptive multiplier with a flip limit |
+| Draw-call numbers looked random | `renderer.info` reset per render call | `info.autoReset = false`; reset once per frame |
+| A new renderer assumed to be a drop-in | GLSL and `onBeforeCompile` do not run on the node renderer | Keep WebGL2 for parity; port one section to TSL behind a flag |
+| Bloom looked different after a port | Two different algorithms share a name | Port the original algorithm line for line |
+| The same Draco build for meshes and points | Point clouds failed to decode | Use the full Draco build |

@@ -72,3 +72,11 @@ with two sines at odd frequencies for a natural flicker (`sin(t·11.3)·0.5 + si
 | `NeutralToneMapping` | Faithful colours: products, brand colours, UI-matched scenes |
 | `ACESFilmicToneMapping` / `AgXToneMapping` | Cinematic contrast and highlight roll-off |
 | `NoToneMapping` (R3F `flat`) | Flat, illustrative scenes where colours must equal the design file |
+
+## A camera rig instead of a moving camera
+
+Scenes and timelines animate a **base pose** (`basePosition`, `baseTarget`, `baseUp`). Each frame the rig derives
+the camera basis from it and layers on: pointer parallax (the position orbits the target in spherical offsets,
+the target slides, roll follows pointer velocity), and a noise shake, smoothed with frame-rate independent
+lerps (≈ 0.035 per 60 Hz frame). Benefits: scroll rails and intros never fight the parallax; the shake and
+parallax are switchable per scene (zero them for screenshots and comparisons); touch devices recentre on release.

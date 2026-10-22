@@ -74,3 +74,23 @@ Reference result from a well-built scroll-driven WebGL page (4 worlds, 65k GPU p
 16.8ms, 1 to 3 frames over 33ms in ~700, 16 to 28 draw calls per frame, memory flat after 3 returns.
 
 In-app while developing: `renderer.info.render.calls / triangles`, `renderer.info.memory.geometries / textures`, and `r3f-perf` in R3F.
+
+## Adaptive resolution (a loop that settles)
+
+Cap the pixel ratio hard when you render several full-screen passes per frame (≈ 1.15 up to 2x screens, 1.5
+above). Then adapt a multiplier on top of it:
+
+| Setting | Value |
+| --- | --- |
+| Warm-up before the first decision | 2 s |
+| Sample window | ≥ 5 fps samples and ≥ 4 s since the last change |
+| Lower | average < 30 fps → multiplier −0.1, minimum 0.6 |
+| Raise | average ≥ 60 fps and multiplier < 1 → +0.1, maximum 1 |
+| Stop | after ~4 direction flips (oscillation) |
+| Ignore | samples while the tab is hidden |
+
+Publish a rolling average fps twice a second on the event bus; the multiplier only changes the shared
+resolution and fires a resize. Start it when rendering first becomes active, and only once.
+
+Also: reset `renderer.info` each frame (`autoReset = false`) to read real per-frame draw calls; probe float
+render-target support instead of trusting the extension list (`references/vanilla-engine.md`).

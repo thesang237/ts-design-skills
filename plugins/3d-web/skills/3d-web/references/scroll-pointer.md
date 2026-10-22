@@ -49,3 +49,25 @@ if (disc > 0) hit.copy(o).addScaledVector(d, -b - Math.sqrt(disc))
 No scroll scrubbing of the camera, no parallax, no auto-rotation. Show each act as a still (dials at
 their resting values) or the poster; interactions that don't move the camera (select, open detail)
 stay.
+
+## Virtual, looping scroll (the page never scrolls)
+
+For a canvas-is-the-page site, wheel, touch drag and keys move a number measured in **screens**:
+
+```ts
+// per frame, in the controller's render
+targetY1 = lerpFPSLimited(targetY1, targetY2, 0.075, 100 * K);   // speed limit
+y        = lerpFPS(y, targetY1, 0.15);                           // follow
+targetY2 = clamp(targetY2, y - 750 * K, y + 750 * K);            // input may not run far ahead
+velocity = (velocity + |y - prevY|) * frictionFPS(0.98), clamped 0..1   // feeds shaders
+```
+`K` converts wheel pixels to screens (≈ 0.00075). Sections are stacked end to end with lengths in screens and
+the total **loops** (`y % total`, careful with negatives). At most two sections overlap the viewport.
+
+- **Auto-centre after a pause (~1.4 s idle):** tween to the nearest section edge, or to a section's preferred
+  resting points; sync `targetY1/targetY2` in `onUpdate` so input does not fight the tween; ignore input while it
+  runs and during route transitions.
+- Wheel: `preventDefault` on the canvas, ×33 for Firefox line mode, keep `position`, `delta` and a decaying
+  `velocity`; treat `ctrlKey` as pinch.
+- Keyboard (arrows), touch drag and Escape/close must reach every state; provide DOM text alternatives (see rule 7).
+- Resize resets the targets to the current `y` so nothing jumps.

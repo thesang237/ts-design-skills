@@ -73,3 +73,11 @@ testing the demo. Numbers are from production builds in headless Chromium unless
 - Gesture-driven "swipe back" that scrubs the transition on touch.
 - Nested view-transition groups (`view-transition-group: nearest`, Chrome 140+) so a morphing card stays clipped by its container. Progressive enhancement only.
 - `ViewTransition.waitUntil` (upcoming) to hold a transition for a short async step without freezing.
+
+## Found while rebuilding a tile-based multi-page site (2026-10-21)
+
+- **Overlapping old and new** (starting the opening during the outro) showed two titles and two sets of lines. Start the new page only when the old one is gone.
+- **A grown tile looked wrong until the new page started in the identical state.** Match colour, size and title position at the seam, then cut.
+- **Back from the bfcache showed the mid-transition state.** `pageshow` with `persisted` then reload.
+- **The browser restored the old scroll on a page that opens with an intro.** `history.scrollRestoration = 'manual'` and `scrollTo(0, 0)`.
+- **A shared-element morph also cross-faded the whole page.** Disable the root animation while it runs and clear the `view-transition-name` afterwards.

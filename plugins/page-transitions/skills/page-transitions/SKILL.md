@@ -73,6 +73,7 @@ element in the same moment. Avoid the old "AnimatePresence + frozen router" patt
 14. Know the limit: **the browser's own Back/Forward buttons are not animated** by Next 16.3 (they cut instantly, scroll is still restored). Say so; do not promise otherwise. See `references/pitfalls.md`.
 15. **Overlays are dialogs, written as data.** Lock scroll while open, Escape closes, focus moves in and returns to the opener, the close is its own sequence (content first, surface last, `display: none` at the end), and the backdrop blur is static with an animated opacity.
 16. **One owner per element and property.** If GSAP animates it, GSAP sets its start state; never let a stylesheet transform and a tween both move one element (`pitfalls.md`).
+17. **On multi-page sites, hand over instead of cross-fading.** Make the end of page A equal the start of page B (a tile that grows into the next header), wait with a timer equal to the CSS duration, skip on phones and reduced motion, and reload on `pageshow` `persisted` (`references/handover-mpa.md`).
 
 ## Quality checklist (run before calling it done)
 
@@ -93,9 +94,12 @@ element in the same moment. Avoid the old "AnimatePresence + frozen router" patt
 - [ ] Works in Chromium, Firefox and WebKit engines
 - [ ] Overlays: scroll locked while open, Escape closes, focus returns to the opener, closing is its own sequence, hidden overlays are out of the tab order
 - [ ] Hand-over loader (if used): the last loader frame equals the hero frame, the page waits for the sheet to leave, once per session, skippable
+- [ ] Multi-page sites: the timer equals the CSS duration, the new opening never overlaps the outro, Back from the bfcache shows no half-finished state
 - [ ] The designer's answers above are respected and written down
 
 ## Reference files
+
+- `references/handover-mpa.md`: tile-to-page hand-over for multi-page sites, native cross-document option, shared-element morph recipe
 
 - `references/view-transitions.md`: native transitions in Next.js (page, direction, morph, Suspense), plus plain-JS version
 - `references/page-loader.md`: the first-load intro/loader, sequencing, readiness, session rule, and the hand-over loader variant

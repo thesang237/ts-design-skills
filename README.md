@@ -14,6 +14,7 @@ A personal collection of design skills for [Claude Code](https://claude.com/clau
 | **quality-check** | Reviewing work for consistency, accessibility and polish |
 | **create-learn-page** | Learn / breakdown pages that teach how a project works: curriculum, chapter guide, live demos with dials, flashcards and quiz, verification |
 | **reference-match** | Rebuilding or matching a page from a reference (a screen recording, saved HTML and assets): timeline from contact sheets, layout measured from pixels, every asset identified with small debug views, side-by-side comparison at the same moments, pointer and hover checks, original copy and art |
+| **astro-creative-page** | Creative Astro sites: multi-page with ClientRouter transitions, persisted UI, a per-page cleanup Scope and Lenis + GSAP scroll; immersive single-canvas WebGL/WebGPU with virtual looping scroll; component-per-section ports; /learn guide in the project; study-build conventions and verification |
 | **skill-retro** | Run `/skill-retro` at the end of a project: evidence, then corrected / broke / slow / worked, then proposed skill updates in a visual report, saved only when approved. Sample report in `demos/skill-retro` |
 
 ## How it's organized (plain-language version)
@@ -90,6 +91,7 @@ Then install whichever skills you want:
 /plugin install create-learn-page@ts-design-skills
 /plugin install skill-retro@ts-design-skills
 /plugin install product-configurator@ts-design-skills
+/plugin install astro-creative-page@ts-design-skills
 ```
 
 (For a private repository, you need to be signed in to GitHub on your computer.)

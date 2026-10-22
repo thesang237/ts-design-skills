@@ -1,0 +1,8 @@
+{
+  "name": "astro-creative-page",
+  "version": "0.1.0",
+  "description": "Structure and architecture for creative Astro sites: multi-page sites with client-side page transitions, persistent UI, one cleanup Scope per page and Lenis + GSAP scroll; immersive single-canvas WebGL/WebGPU experiences with a virtual, looping scroll; component-per-section pages ported from exports; a /learn guide inside the same project; study-build conventions and verification.",
+  "author": {
+    "name": "Sang"
+  }
+}

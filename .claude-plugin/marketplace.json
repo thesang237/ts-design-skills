@@ -51,6 +51,11 @@
       "name": "product-configurator",
       "source": "./plugins/product-configurator",
       "description": "High-end 3D product configurators for landing pages and stores, for any product: product-as-data options and rules with reasons and fixes, pricing, shareable links, stutter-free swaps, a shop-sheet panel, camera presets per part, poster-first loading, and cart, snapshot and AR hand-off."
+    },
+    {
+      "name": "astro-creative-page",
+      "source": "./plugins/astro-creative-page",
+      "description": "Structure and architecture for creative Astro sites: multi-page sites with client-side page transitions, persistent UI, a per-page cleanup Scope and Lenis + GSAP scroll; immersive single-canvas WebGL/WebGPU experiences with a virtual looping scroll; component-per-section ports of exports; a /learn guide in the same project; study-build conventions and verification."
     }
   ]
 }
